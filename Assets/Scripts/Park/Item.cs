@@ -4,11 +4,9 @@ using UnityEngine;
 public class Item
 {
 	private string name;
-	public Sprite sprite;
 
-	public Item(string name, Sprite sprite)
+	public Item(string name)
 	{
 		this.name = name;
-		this.sprite = sprite;
 	}
 }
