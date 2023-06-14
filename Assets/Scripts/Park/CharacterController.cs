@@ -13,6 +13,7 @@ public class CharacterController : MonoBehaviour
 
     private float speed = 5f;
     private GameObject currentCheckButton = null;
+    private GameData gameData = GameData.GetInstance();
 
     Animator animator;
 
@@ -46,7 +47,17 @@ public class CharacterController : MonoBehaviour
 
                 if (Input.GetKeyDown(KeyCode.E))
                 {
-                    uiManager.OpenPanel(hitCollider.name);
+                    // TODO: Panel이 뜨지 않는 Object
+                    if(hitCollider.name.Contains("Dev_ItemGiver"))
+                    {
+                        int itemId = int.Parse(hitCollider.name.Substring(14));
+                        gameData.addItem(itemId, 1);
+                    } else
+                    {
+                        uiManager.OpenPanel(hitCollider.name);
+                    }
+
+                    
                 }
             }
             else

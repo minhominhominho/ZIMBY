@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class UIManager : MonoBehaviour
 {
     public GameObject storagePanel;
+    public GameObject craftingPanel;
 
     // 유저와 상호작용하는 Panel이 열려있는 지 여부 (Storage, Counter, ...)
     private bool isPanelOpen = false;
@@ -28,6 +29,11 @@ public class UIManager : MonoBehaviour
         {
             storagePanel.SetActive(true);
             openedPanel = storagePanel;
+        }
+        else if(panelName == "CraftingTable")
+        {
+            craftingPanel.SetActive(true);
+            openedPanel = craftingPanel;
         }
     }
 
