@@ -71,7 +71,7 @@ public class ArrangingPanel : MonoBehaviour
 
             if(Input.GetKeyDown(KeyCode.R))
             {
-                shadow.GetComponent<Furniture>().Rotate();
+                shadow.GetComponent<FurnitureController>().Rotate();
                 return;
             }
 
@@ -136,7 +136,7 @@ public class ArrangingPanel : MonoBehaviour
         // make furniture
         GameObject arranged = Instantiate<GameObject>(shadowResource, shadowPos, Quaternion.identity);
         arranged.name = shadowItemId.ToString();
-        arranged.GetComponent<Furniture>().SetDirection(shadow.GetComponent<Furniture>().GetDirection());
+        arranged.GetComponent<FurnitureController>().SetDirection(shadow.GetComponent<FurnitureController>().GetDirection());
 
         // panel reload
         resetMyFurnitures();

@@ -32,8 +32,10 @@ public class GameData
     private void InitItem()
     {
         int[,] a = { { 1, 3 }, { 2, 4 } };
-        items[1000] = new("Wood Chair");
+        items[1000] = new Furniture("Wood Chair", 1, 1);
         recipes[1000] = new(6001, 5, 6000, 3);
+        items[1001] = new Furniture("Wood Table", 3, 2);
+        recipes[1001] = new(6000, 5, 6001, 3);
         items[6000] = new("Wood");
         items[6001] = new("Iron");
     }
@@ -44,6 +46,7 @@ public class GameData
         inventory[6001] += 3;
 
         learnedRecipes[1000] = true;
+        learnedRecipes[1001] = true;
     }
 
     public void addItem(int what, int count)

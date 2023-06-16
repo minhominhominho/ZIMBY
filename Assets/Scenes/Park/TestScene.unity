@@ -4549,5 +4549,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: CraftingTable
       objectReference: {fileID: 0}
+    - target: {fileID: 4740852386505076570, guid: cf9a76e5d5bd24193b1d05f1f06ebdab, type: 3}
+      propertyPath: m_Size.x
+      value: 0.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 4740852386505076570, guid: cf9a76e5d5bd24193b1d05f1f06ebdab, type: 3}
+      propertyPath: m_Size.y
+      value: 0.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 4740852386505076570, guid: cf9a76e5d5bd24193b1d05f1f06ebdab, type: 3}
+      propertyPath: m_Offset.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4740852386505076570, guid: cf9a76e5d5bd24193b1d05f1f06ebdab, type: 3}
+      propertyPath: m_Offset.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cf9a76e5d5bd24193b1d05f1f06ebdab, type: 3}
