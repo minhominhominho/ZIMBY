@@ -7,10 +7,12 @@ public class UIManager : MonoBehaviour
 {
     public GameObject storagePanel;
     public GameObject craftingPanel;
+    public GameObject arrangingPanel;
 
     // 유저와 상호작용하는 Panel이 열려있는 지 여부 (Storage, Counter, ...)
     private bool isPanelOpen = false;
     private GameObject openedPanel = null;
+    private bool lockGetKey = false;
 
     public bool IsPanelOpen() { return isPanelOpen; }
 
@@ -35,15 +37,26 @@ public class UIManager : MonoBehaviour
             craftingPanel.SetActive(true);
             openedPanel = craftingPanel;
         }
+        else if(panelName == "Arranging")
+        {
+            arrangingPanel.SetActive(true);
+            openedPanel = arrangingPanel;
+        }
+    }
+
+    public void LockGetKey(bool lockGetKey)
+    {
+        this.lockGetKey = lockGetKey;
     }
 
     private void Update()
     {
-        if(isPanelOpen)
+        if(isPanelOpen && !lockGetKey)
         {
             if(Input.GetKeyDown(KeyCode.Escape))
             {
                 ClosePanel();
+                return;
             }
         }
     }

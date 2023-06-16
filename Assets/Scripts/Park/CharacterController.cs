@@ -32,6 +32,12 @@ public class CharacterController : MonoBehaviour
             animator.Play("Idle");
         } else
         {
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                uiManager.OpenPanel("Arranging");
+                return;
+            }
+
             Vector3 direction = SetDirection();
             Move();
 
@@ -42,6 +48,7 @@ public class CharacterController : MonoBehaviour
             {
                 if (currentCheckButton == null)
                 {
+                    // TODO: CheckButton Raycast 대상이 바뀌어도 CheckButton 이 유지되면 버그
                     currentCheckButton = Instantiate(checkButton, hitCollider.transform.position, Quaternion.identity);
                 }
 
