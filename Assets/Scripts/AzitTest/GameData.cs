@@ -22,6 +22,7 @@ public class GameData
     private long day = 1;
     private int[] inventory = new int[10000];
     private bool[] learnedRecipes = new bool[10000];
+    private List<FurnitureLocation> azitInterior = new List<FurnitureLocation>();
 
     public int[] GetInventory()
     {
@@ -31,6 +32,11 @@ public class GameData
     public bool[] GetLearnedRecipes()
     {
         return learnedRecipes;
+    }
+
+    public List<FurnitureLocation> GetAzitInterior()
+    {
+        return azitInterior;
     }
 
     private void InitItem()
@@ -56,6 +62,10 @@ public class GameData
         learnedRecipes[1001] = true;
         learnedRecipes[1002] = true;
         learnedRecipes[1003] = true;
+
+        // azit interior
+        azitInterior.Add(new(1002, new(-3f, 3f, 0f), 0));
+        azitInterior.Add(new(1003, new(0f, 5f, 0f), 0));
     }
 
     public void AddItem(int what, int count)
@@ -67,5 +77,10 @@ public class GameData
         {
             inventory[what] = (inventory[what] < (-1 * count)) ? 0 : inventory[what] + count;
         } 
+    }
+
+    public void LocateFurniture(FurnitureLocation fl)
+    {
+        this.azitInterior.Add(fl);
     }
 }

@@ -130,13 +130,16 @@ public class ArrangingPanel : MonoBehaviour
 
     private void Arrange(Vector3 shadowPos)
     {
+        int direction = shadow.GetComponent<FurnitureController>().GetDirection();
+
         // modify data
         gameData.AddItem(shadowItemId, -1);
+        gameData.LocateFurniture(new(shadowItemId, shadowPos, direction));
 
         // make furniture
         GameObject arranged = Instantiate<GameObject>(shadowResource, shadowPos, Quaternion.identity);
         arranged.name = shadowItemId.ToString();
-        arranged.GetComponent<FurnitureController>().SetDirection(shadow.GetComponent<FurnitureController>().GetDirection());
+        arranged.GetComponent<FurnitureController>().SetDirection(direction);
         Destroy(arranged.GetComponent<Shadow>());
 
         // panel reload

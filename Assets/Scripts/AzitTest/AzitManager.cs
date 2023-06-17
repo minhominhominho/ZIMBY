@@ -8,6 +8,24 @@ public class AzitManager : MonoBehaviour
     public GameObject character;
     public Camera mainCamera;
 
+    private GameData gameData = GameData.GetInstance();
+
+    private void Awake()
+    {
+        List<FurnitureLocation> interior = gameData.GetAzitInterior();
+        foreach(FurnitureLocation location in interior)
+        {
+            GameObject obj = Instantiate<GameObject>(
+                Resources.Load<GameObject>("Prefabs/" + location.id),
+                location.pos,
+                Quaternion.identity
+            );
+
+            obj.GetComponent<FurnitureController>().SetDirection(location.direction);
+            Destroy(obj.GetComponent<Shadow>());
+        }
+    }
+
     void Update()
     {
         // camera
