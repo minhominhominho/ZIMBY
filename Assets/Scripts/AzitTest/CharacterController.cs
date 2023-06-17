@@ -7,6 +7,7 @@ public class CharacterController : MonoBehaviour
     // Raycast 에 감지될 레이어 마스크
     public LayerMask layerMask;
     public GameObject checkButton;
+    public AzitManager azitManager;
     public UIManager uiManager;
 
     private Collider2D hitCollider = null;
@@ -43,28 +44,18 @@ public class CharacterController : MonoBehaviour
 
             // RayCast
             RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, 2f, layerMask);
+            Collider2D prev = hitCollider;
             hitCollider = hit.collider;
-            if (hitCollider != null)
+            if (hitCollider != null && (prev == hitCollider))
             {
                 if (currentCheckButton == null)
                 {
-                    // TODO: CheckButton Raycast 대상이 바뀌어도 CheckButton 이 유지되면 버그
                     currentCheckButton = Instantiate(checkButton, hitCollider.transform.position, Quaternion.identity);
                 }
 
                 if (Input.GetKeyDown(KeyCode.E))
                 {
-                    // TODO: Panel이 뜨지 않는 Object
-                    if(hitCollider.name.Contains("Dev_ItemGiver"))
-                    {
-                        int itemId = int.Parse(hitCollider.name.Substring(14));
-                        gameData.addItem(itemId, 1);
-                    } else
-                    {
-                        uiManager.OpenPanel(hitCollider.name);
-                    }
-
-                    
+                    azitManager.UseFurniture(hitCollider.tag);
                 }
             }
             else
@@ -115,7 +106,8 @@ public class CharacterController : MonoBehaviour
             animator.Play("Run");
 
         }
-        transform.position += new Vector3(x, y, 0).normalized * speed * Time.deltaTime;
+        GetComponent<Rigidbody2D>().position += new Vector2(x, y).normalized * speed * Time.deltaTime;
+        //transform.position 
     }
 }
 

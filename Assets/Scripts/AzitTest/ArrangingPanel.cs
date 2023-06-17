@@ -76,7 +76,7 @@ public class ArrangingPanel : MonoBehaviour
             }
 
             Vector3 cursorPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 1f));
-            Vector3 shadowPos = new(Mathf.Round(cursorPos.x), Mathf.Round(cursorPos.y), 1f);
+            Vector3 shadowPos = new(Mathf.Round(cursorPos.x * 2f) * .5f, Mathf.Round(cursorPos.y * 2f) * .5f, 1f);
             shadow.transform.position = shadowPos;
 
             if (shadow.GetComponent<Shadow>().IsValid())
@@ -131,12 +131,13 @@ public class ArrangingPanel : MonoBehaviour
     private void Arrange(Vector3 shadowPos)
     {
         // modify data
-        gameData.addItem(shadowItemId, -1);
+        gameData.AddItem(shadowItemId, -1);
 
         // make furniture
         GameObject arranged = Instantiate<GameObject>(shadowResource, shadowPos, Quaternion.identity);
         arranged.name = shadowItemId.ToString();
         arranged.GetComponent<FurnitureController>().SetDirection(shadow.GetComponent<FurnitureController>().GetDirection());
+        Destroy(arranged.GetComponent<Shadow>());
 
         // panel reload
         resetMyFurnitures();
