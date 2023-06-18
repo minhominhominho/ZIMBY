@@ -20,9 +20,8 @@ public class AzitManager : MonoBehaviour
                 location.pos,
                 Quaternion.identity
             );
-
+            obj.name = location.id.ToString();
             obj.GetComponent<FurnitureController>().SetDirection(location.direction);
-            Destroy(obj.GetComponent<Shadow>());
         }
     }
 
@@ -43,6 +42,6 @@ public class AzitManager : MonoBehaviour
 
     private bool HasToOpenPanel(string tag)
     {
-        return tag == "CraftingTable" || tag == "Storage" || tag == "Door";
+        return tag == "CraftingTable" || tag == "Storage" || tag == "Door" || tag == "Stove";
     }
 }

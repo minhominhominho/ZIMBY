@@ -49,12 +49,26 @@ public class GameData
         recipes[1002] = new(6000, 5, 6001, 5);
         items[1003] = new Furniture("Storage 1", 2, 2, new(1.9f, .9f, 0f, -.5f, .9f, .9f, 0f, -.5f));
         recipes[1003] = new(6000, 3, 6001, 3);
+        items[1004] = new Furniture("Stove 1", 2, 3, new(1.8f, 1.8f, 0f, -.5f, 1.8f, 1.8f, 0f, -.5f));
+        recipes[1004] = new(6007, 3, 6008, 3, 6009, 1);
+
+        items[3000] = new("French Fries");
+        recipes[3000] = new(5000, 3);
+
+        items[5000] = new("Potato");
+
         items[6000] = new("Wood");
         items[6001] = new("Iron");
+        items[6007] = new("Iron Plate");
+        recipes[6007] = new(6001, 3);
+        items[6008] = new("Wood Plate");
+        recipes[6008] = new(6000, 3);
+        items[6009] = new("Aluminum");
     }
 
     private void ForTest() {
         inventory[1000]++;
+        inventory[1004]++;
         inventory[6000] += 20;
         inventory[6001] += 20;
 
@@ -62,6 +76,12 @@ public class GameData
         learnedRecipes[1001] = true;
         learnedRecipes[1002] = true;
         learnedRecipes[1003] = true;
+        learnedRecipes[1004] = true;
+
+        learnedRecipes[3000] = true;
+
+        learnedRecipes[6007] = true;
+        learnedRecipes[6008] = true;
 
         // azit interior
         azitInterior.Add(new(1002, new(-3f, 3f, 0f), 0));

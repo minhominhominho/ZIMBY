@@ -7,6 +7,7 @@ TagManager:
   - CraftingTable
   - Storage
   - Door
+  - Stove
   layers:
   - Default
   - TransparentFX

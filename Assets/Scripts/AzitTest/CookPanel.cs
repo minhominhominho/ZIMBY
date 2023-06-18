@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class CraftingPanel : MonoBehaviour
+public class CookPanel : MonoBehaviour
 {
     public GameObject availablePanelContent;
     public GameObject materialPanelContent;
@@ -22,9 +22,9 @@ public class CraftingPanel : MonoBehaviour
     private void OnEnable()
     {
         bool[] learnedRecipes = gameData.GetLearnedRecipes();
-        for (int i=1000; i<learnedRecipes.Length; i++)
+        for (int i = 3000; i < 4000; i++)
         {
-            if (!(i >= 3000 && i < 4000) && learnedRecipes[i])
+            if (learnedRecipes[i])
             {
                 GameObject availableItemObject = Instantiate<GameObject>(availableItem, Vector3.zero, Quaternion.identity, availablePanelContent.transform);
                 availableItems.Add(availableItemObject);
@@ -39,7 +39,7 @@ public class CraftingPanel : MonoBehaviour
 
     private void OnDisable()
     {
-        foreach(GameObject availableItemObject in availableItems)
+        foreach (GameObject availableItemObject in availableItems)
         {
             Destroy(availableItemObject);
         }
@@ -54,7 +54,7 @@ public class CraftingPanel : MonoBehaviour
 
         selectedItemId = itemId;
         int[,] recipe = gameData.recipes[itemId].getMaterials();
-        for(int i=0; i<recipe.GetLength(0); i++)
+        for (int i = 0; i < recipe.GetLength(0); i++)
         {
             int id = recipe[i, 0];
             int count = recipe[i, 1];
@@ -88,14 +88,14 @@ public class CraftingPanel : MonoBehaviour
             int id = recipe[i, 0];
             int count = recipe[i, 1];
 
-            if(gameData.GetInventory()[id] < count)
+            if (gameData.GetInventory()[id] < count)
             {
                 canCraft = false;
                 break;
             }
         }
 
-        if(canCraft)
+        if (canCraft)
         {
             for (int i = 0; i < recipe.GetLength(0); i++)
             {

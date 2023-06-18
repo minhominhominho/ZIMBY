@@ -118,6 +118,7 @@ public class ArrangingPanel : MonoBehaviour
             shadowResource = Resources.Load<GameObject>("Prefabs/" + itemId);
             shadow = Instantiate<GameObject>(shadowResource, Vector3.zero, Quaternion.identity);
             shadow.GetComponent<BoxCollider2D>().isTrigger = true;
+            shadow.AddComponent<Shadow>();
             shadowItemId = itemId;
 
             // lock uiManager GetKey
@@ -140,7 +141,6 @@ public class ArrangingPanel : MonoBehaviour
         GameObject arranged = Instantiate<GameObject>(shadowResource, shadowPos, Quaternion.identity);
         arranged.name = shadowItemId.ToString();
         arranged.GetComponent<FurnitureController>().SetDirection(direction);
-        Destroy(arranged.GetComponent<Shadow>());
 
         // panel reload
         resetMyFurnitures();
