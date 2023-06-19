@@ -9,14 +9,17 @@ public class AzitManager : MonoBehaviour
     public Camera mainCamera;
 
     private GameData gameData = GameData.GetInstance();
+    private ResourceManager rm = ResourceManager.GetInstance(); 
 
     private void Awake()
     {
+        rm.Load();
+
         List<FurnitureLocation> interior = gameData.GetAzitInterior();
         foreach(FurnitureLocation location in interior)
         {
             GameObject obj = Instantiate<GameObject>(
-                Resources.Load<GameObject>("Prefabs/" + location.id),
+                rm.GetPrefab(location.id.ToString()),
                 location.pos,
                 Quaternion.identity
             );

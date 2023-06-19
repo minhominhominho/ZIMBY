@@ -7,7 +7,7 @@ public class Furniture : Item
     private int y;
     private ColliderSize colliderSize;
 
-    public Furniture(string name, int x, int y, ColliderSize colliderSize) : base(name)
+    public Furniture(string name, string description, int x, int y, ColliderSize colliderSize) : base(name, description)
     {
         this.x = x;
         this.y = y;

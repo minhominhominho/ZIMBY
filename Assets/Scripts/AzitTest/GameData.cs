@@ -41,29 +41,29 @@ public class GameData
 
     private void InitItem()
     {
-        items[1000] = new Furniture("Wood Chair", 1, 1, new(.9f, .9f, 0f, -.5f, .9f, .9f, 0f, -.5f));
+        items[1000] = new Furniture("Wood Chair", "Wood Chair", 1, 1, new(.9f, .9f, 0f, -.5f, .9f, .9f, 0f, -.5f));
         recipes[1000] = new(6001, 5, 6000, 3);
-        items[1001] = new Furniture("Wood Table", 3, 2, new(2.9f, .9f, 0f, -.5f, 1.9f, 1.9f, 0f, -.5f));
+        items[1001] = new Furniture("Wood Table", "Wood Table", 3, 2, new(2.9f, .9f, 0f, -.5f, 1.9f, 1.9f, 0f, -.5f));
         recipes[1001] = new(6000, 5, 6001, 3);
-        items[1002] = new Furniture("Crafting Table 1", 3, 2, new(2.9f, .9f, 0f, -.5f, 1.9f, 1.9f, 0f, -.5f));
+        items[1002] = new Furniture("Crafting Table 1", "", 3, 2, new(2.9f, .9f, 0f, -.5f, 1.9f, 1.9f, 0f, -.5f));
         recipes[1002] = new(6000, 5, 6001, 5);
-        items[1003] = new Furniture("Storage 1", 2, 2, new(1.9f, .9f, 0f, -.5f, .9f, .9f, 0f, -.5f));
+        items[1003] = new Furniture("Storage 1", "", 2, 2, new(1.9f, .9f, 0f, -.5f, .9f, .9f, 0f, -.5f));
         recipes[1003] = new(6000, 3, 6001, 3);
-        items[1004] = new Furniture("Stove 1", 2, 3, new(1.8f, 1.8f, 0f, -.5f, 1.8f, 1.8f, 0f, -.5f));
+        items[1004] = new Furniture("Stove 1", "", 2, 3, new(1.8f, 1.8f, 0f, -.5f, 1.8f, 1.8f, 0f, -.5f));
         recipes[1004] = new(6007, 3, 6008, 3, 6009, 1);
 
-        items[3000] = new("French Fries");
+        items[3000] = new("French Fries", "Delicious");
         recipes[3000] = new(5000, 3);
 
-        items[5000] = new("Potato");
+        items[5000] = new("Potato", "");
 
-        items[6000] = new("Wood");
-        items[6001] = new("Iron");
-        items[6007] = new("Iron Plate");
+        items[6000] = new("Wood", "");
+        items[6001] = new("Iron", "");
+        items[6007] = new("Iron Plate", "");
         recipes[6007] = new(6001, 3);
-        items[6008] = new("Wood Plate");
+        items[6008] = new("Wood Plate", "");
         recipes[6008] = new(6000, 3);
-        items[6009] = new("Aluminum");
+        items[6009] = new("Aluminum", "");
     }
 
     private void ForTest() {
@@ -97,6 +97,19 @@ public class GameData
         {
             inventory[what] = (inventory[what] < (-1 * count)) ? 0 : inventory[what] + count;
         } 
+    }
+
+    public string GetItemType(int itemId)
+    {
+        string result = "";
+        if (itemId / 1000 == 1) result = "Furniture";
+        else if (itemId / 1000 == 2) result = "Tool";
+        else if (itemId / 1000 == 3) result = "Food";
+        else if (itemId / 1000 == 4) result = "Seed";
+        else if (itemId / 1000 == 5) result = "Plant";
+        else if (itemId / 1000 == 6) result = "Material";
+
+        return result;
     }
 
     public void LocateFurniture(FurnitureLocation fl)

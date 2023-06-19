@@ -22,7 +22,7 @@ public class DevMapManager : MonoBehaviour
 
             GameObject itemObject = Instantiate<GameObject>(itemPrefab, Vector3.zero, Quaternion.identity, itemPanelContent.transform);
             int id = i;
-            itemObject.transform.GetChild(0).GetComponent<Image>().sprite = Resources.Load<Sprite>("icon_item_" + id);
+            itemObject.transform.GetChild(0).GetComponent<Image>().sprite = Resources.Load<Sprite>("Icons/" + id);
             itemObject.transform.GetChild(1).GetComponent<TMP_InputField>().onValueChanged.AddListener((val) => OnChange(id, val));
         }
         

@@ -9,8 +9,11 @@ public class Item
 		return name;
 	}
 
-	public Item(string name)
+	public string description { get; }
+
+	public Item(string name, string description)
 	{
 		this.name = name;
+		this.description = description;
 	}
 }

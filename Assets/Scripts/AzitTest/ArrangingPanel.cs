@@ -12,6 +12,7 @@ public class ArrangingPanel : MonoBehaviour
     public UIManager uiManager;
 
     private GameData gameData = GameData.GetInstance();
+    private ResourceManager rm = ResourceManager.GetInstance(); 
 
     private List<GameObject> arrangableItemObjectList = new List<GameObject>();
     private GameObject shadowResource = null;
@@ -41,7 +42,7 @@ public class ArrangingPanel : MonoBehaviour
                 {
                     GameObject arrangableItemObject = Instantiate<GameObject>(arrangableItem, Vector3.zero, Quaternion.identity, arrangablePanelContent.transform);
                     arrangableItemObjectList.Add(arrangableItemObject);
-                    arrangableItemObject.transform.GetChild(0).GetComponent<Image>().sprite = Resources.Load<Sprite>("icon_item_" + i);
+                    arrangableItemObject.transform.GetChild(0).GetComponent<Image>().sprite = rm.GetIcon(i.ToString());
                     arrangableItemObject.transform.GetChild(1).GetComponent<TMP_Text>().text = gameData.items[i].GetName();
                     int itemId = i;
                     arrangableItemObject.GetComponent<Button>().onClick.AddListener(() => SetArrangeMode(itemId));
@@ -115,7 +116,7 @@ public class ArrangingPanel : MonoBehaviour
         else
         {
             // show Shadow
-            shadowResource = Resources.Load<GameObject>("Prefabs/" + itemId);
+            shadowResource = rm.GetPrefab(itemId.ToString());
             shadow = Instantiate<GameObject>(shadowResource, Vector3.zero, Quaternion.identity);
             shadow.GetComponent<BoxCollider2D>().isTrigger = true;
             shadow.AddComponent<Shadow>();

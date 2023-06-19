@@ -6,10 +6,27 @@ using TMPro;
 
 public class ItemFrame : MonoBehaviour
 {
-    public void SetItem(int itemId, int count)
+    private ResourceManager rm = ResourceManager.GetInstance();
+    private StoragePanel panel;
+    private int itemId;
+
+    public void SetItem(StoragePanel panel, int itemId, int count)
     {
+        this.panel = panel;
+        this.itemId = itemId;
         name = "Item_" + itemId;
-        transform.GetChild(0).GetComponent<Image>().sprite = Resources.Load<Sprite>("icon_item_" + itemId);
+        transform.GetChild(0).GetComponent<Image>().sprite = rm.GetIcon(itemId.ToString());
         transform.GetChild(1).GetComponent<TMP_Text>().text = "" + count;
+    }
+
+    private void OnMouseEnter()
+    {
+        Debug.Log("Mouse Enter");
+        panel.OnMouseEnterItem(itemId);
+    }
+
+    private void OnMouseExit()
+    {
+        panel.OnMouseExitItem();        
     }
 }

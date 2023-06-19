@@ -12,6 +12,7 @@ public class CraftingPanel : MonoBehaviour
     public GameObject materialItem;
 
     private GameData gameData = GameData.GetInstance();
+    private ResourceManager rm = ResourceManager.GetInstance();
 
     private List<GameObject> availableItems = new List<GameObject>();
     private List<GameObject> materialItems = new List<GameObject>();
@@ -29,7 +30,7 @@ public class CraftingPanel : MonoBehaviour
                 GameObject availableItemObject = Instantiate<GameObject>(availableItem, Vector3.zero, Quaternion.identity, availablePanelContent.transform);
                 availableItems.Add(availableItemObject);
 
-                availableItemObject.transform.GetChild(0).GetComponent<Image>().sprite = Resources.Load<Sprite>("icon_item_" + i);
+                availableItemObject.transform.GetChild(0).GetComponent<Image>().sprite = rm.GetIcon(i.ToString());
                 availableItemObject.transform.GetChild(1).GetComponent<TMP_Text>().text = gameData.items[i].GetName();
                 int itemId = i;
                 availableItemObject.GetComponent<Button>().onClick.AddListener(() => OnClickAvailableItem(itemId));
@@ -62,7 +63,7 @@ public class CraftingPanel : MonoBehaviour
             GameObject materialItemObject = Instantiate<GameObject>(materialItem, Vector3.zero, Quaternion.identity, materialPanelContent.transform);
             materialItems.Add(materialItemObject);
 
-            materialItemObject.transform.GetChild(0).GetComponent<Image>().sprite = Resources.Load<Sprite>("icon_item_" + id);
+            materialItemObject.transform.GetChild(0).GetComponent<Image>().sprite = rm.GetIcon(id.ToString());
             materialItemObject.transform.GetChild(1).GetComponent<TMP_Text>().text = gameData.items[id].GetName();
             materialItemObject.transform.GetChild(2).GetComponent<TMP_Text>().text = gameData.GetInventory()[id] + " / " + count;
         }

@@ -10,6 +10,7 @@ public class FurnitureController : MonoBehaviour
     private SpriteRenderer sr;
     private BoxCollider2D col;
     private Sprite[] sheet;
+    private ResourceManager rm = ResourceManager.GetInstance();
 
     private void Awake()
     {
@@ -17,7 +18,7 @@ public class FurnitureController : MonoBehaviour
         furniture = GameData.GetInstance().items[id] as Furniture;
         sr = GetComponent<SpriteRenderer>();
         col = GetComponent<BoxCollider2D>();
-        sheet = Resources.LoadAll<Sprite>("Furnitures/" + id);
+        sheet = rm.GetSpriteSheet("Furnitures/" + id);
     }
 
     public void Rotate()
