@@ -14,4 +14,3 @@ public class FurnitureLocation
 		this.direction = direction;
 	}
 }
-

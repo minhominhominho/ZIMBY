@@ -116,4 +116,9 @@ public class GameData
     {
         this.azitInterior.Add(fl);
     }
+
+    public void removeFurniture(FurnitureLocation location)
+    {
+        this.azitInterior.Remove(location);
+    }
 }

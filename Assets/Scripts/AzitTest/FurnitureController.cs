@@ -7,6 +7,7 @@ public class FurnitureController : MonoBehaviour
     private Furniture furniture;
     // DLUR 
     private int direction = 0;
+    private FurnitureLocation location;
     private SpriteRenderer sr;
     private BoxCollider2D col;
     private Sprite[] sheet;
@@ -19,6 +20,16 @@ public class FurnitureController : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
         col = GetComponent<BoxCollider2D>();
         sheet = rm.GetSpriteSheet("Furnitures/" + id);
+    }
+
+    public FurnitureLocation GetLocation()
+    {
+        return this.location;
+    }
+
+    public void SetLocation(FurnitureLocation location)
+    {
+        this.location = location;
     }
 
     public void Rotate()
@@ -44,5 +55,15 @@ public class FurnitureController : MonoBehaviour
     public int GetDirection()
     {
         return direction;
+    }
+
+    public void OnHoverEnter()
+    {
+        sr.color = Color.green;
+    }
+
+    public void OnHoverExit()
+    {
+        sr.color = Color.white;
     }
 }

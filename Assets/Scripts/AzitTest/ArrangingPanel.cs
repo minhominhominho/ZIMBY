@@ -10,6 +10,7 @@ public class ArrangingPanel : MonoBehaviour
     public GameObject arrangablePanel;
     public GameObject arrangablePanelContent;
     public UIManager uiManager;
+    public LayerMask furnitureLayer;
 
     private GameData gameData = GameData.GetInstance();
     private ResourceManager rm = ResourceManager.GetInstance(); 
@@ -18,6 +19,8 @@ public class ArrangingPanel : MonoBehaviour
     private GameObject shadowResource = null;
     private GameObject shadow = null;
     private int shadowItemId = -1;
+
+    private Collider2D hoveredFurniture = null;
 
     private void OnEnable()
     {
@@ -62,6 +65,9 @@ public class ArrangingPanel : MonoBehaviour
 
     void Update()
     {
+        Vector3 cursorPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 1f));
+        Vector3 shadowPos = new(Mathf.Round(cursorPos.x * 2f) * .5f, Mathf.Round(cursorPos.y * 2f) * .5f, 1f);
+
         if (shadow != null) // if Arrange Mode
         {
             if(Input.GetKeyDown(KeyCode.Escape))
@@ -70,14 +76,12 @@ public class ArrangingPanel : MonoBehaviour
                 return;
             }
 
-            if(Input.GetKeyDown(KeyCode.R))
+            if (Input.GetKeyDown(KeyCode.R))
             {
                 shadow.GetComponent<FurnitureController>().Rotate();
                 return;
             }
-
-            Vector3 cursorPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 1f));
-            Vector3 shadowPos = new(Mathf.Round(cursorPos.x * 2f) * .5f, Mathf.Round(cursorPos.y * 2f) * .5f, 1f);
+            
             shadow.transform.position = shadowPos;
 
             if (shadow.GetComponent<Shadow>().IsValid())
@@ -86,6 +90,46 @@ public class ArrangingPanel : MonoBehaviour
                 {
                     Arrange(shadowPos);
                 }
+            }
+        } else
+        {
+            RaycastHit2D hit = Physics2D.Raycast(shadowPos, Vector2.zero, .1f, furnitureLayer);
+            if (hit.collider != null && !hit.collider.CompareTag("Door"))
+            {
+                if (hoveredFurniture == null)
+                {
+                    hoveredFurniture = hit.collider;
+                    hoveredFurniture.GetComponent<FurnitureController>().OnHoverEnter();
+                } else if(hoveredFurniture != hit.collider)
+                {
+                    hoveredFurniture.GetComponent<FurnitureController>().OnHoverExit();
+                    hoveredFurniture = hit.collider;
+                    hoveredFurniture.GetComponent<FurnitureController>().OnHoverEnter();
+                }
+            } else
+            {
+                if(hoveredFurniture != null)
+                {
+                    hoveredFurniture.GetComponent<FurnitureController>().OnHoverExit();
+                    hoveredFurniture = null;
+                }
+            }
+
+            if(Input.GetMouseButtonDown(0) && hoveredFurniture != null)
+            {
+                FurnitureLocation location = hoveredFurniture.GetComponent<FurnitureController>().GetLocation();
+
+                // add furniture
+                gameData.AddItem(location.id, 1);
+
+                // remove from gameData interior
+                gameData.removeFurniture(location);
+
+                // destroy
+                Destroy(hoveredFurniture.gameObject);
+
+                // Set Arrange Mode
+                SetArrangeMode(location.id);
             }
         }
     }
@@ -104,6 +148,10 @@ public class ArrangingPanel : MonoBehaviour
 
             // unlock GetKey
             uiManager.LockGetKey(false);
+
+            // panel reload
+            resetMyFurnitures();
+            loadMyFurnitures();
 
             // show panel again
             arrangablePanel.SetActive(true);
@@ -136,16 +184,14 @@ public class ArrangingPanel : MonoBehaviour
 
         // modify data
         gameData.AddItem(shadowItemId, -1);
-        gameData.LocateFurniture(new(shadowItemId, shadowPos, direction));
+        FurnitureLocation location = new(shadowItemId, shadowPos, direction);
+        gameData.LocateFurniture(location);
 
         // make furniture
         GameObject arranged = Instantiate<GameObject>(shadowResource, shadowPos, Quaternion.identity);
         arranged.name = shadowItemId.ToString();
         arranged.GetComponent<FurnitureController>().SetDirection(direction);
-
-        // panel reload
-        resetMyFurnitures();
-        loadMyFurnitures();
+        arranged.GetComponent<FurnitureController>().SetLocation(location);
 
         // arrange mode off
         SetArrangeMode(-1);
