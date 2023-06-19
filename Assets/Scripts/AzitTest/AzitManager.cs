@@ -25,6 +25,7 @@ public class AzitManager : MonoBehaviour
             );
             obj.name = location.id.ToString();
             obj.GetComponent<FurnitureController>().SetDirection(location.direction);
+            obj.GetComponent<FurnitureController>().SetLocation(location);
         }
     }
 
