@@ -8,6 +8,8 @@ public class UIManager : MonoBehaviour
     public GameObject storagePanel;
     public GameObject craftingPanel;
     public GameObject arrangingPanel;
+    public GameObject leavePanel;
+    public GameObject cookPanel;
 
     // 유저와 상호작용하는 Panel이 열려있는 지 여부 (Storage, Counter, ...)
     private bool isPanelOpen = false;
@@ -41,6 +43,14 @@ public class UIManager : MonoBehaviour
         {
             arrangingPanel.SetActive(true);
             openedPanel = arrangingPanel;
+        } else if(panelName == "Door")
+        {
+            leavePanel.SetActive(true);
+            openedPanel = leavePanel;
+        } else if(panelName == "Stove")
+        {
+            cookPanel.SetActive(true);
+            openedPanel = cookPanel;
         }
     }
 

@@ -4,20 +4,21 @@ using UnityEngine;
 
 public class FurnitureController : MonoBehaviour
 {
-    private GameData gameData = GameData.GetInstance();
-    private int id;
+    private Furniture furniture;
     // DLUR 
     private int direction = 0;
     private SpriteRenderer sr;
     private BoxCollider2D col;
     private Sprite[] sheet;
+    private ResourceManager rm = ResourceManager.GetInstance();
 
     private void Awake()
     {
-        id = int.Parse(name.Substring(0, 4));
+        int id = int.Parse(name.Substring(0, 4));
+        furniture = GameData.GetInstance().items[id] as Furniture;
         sr = GetComponent<SpriteRenderer>();
         col = GetComponent<BoxCollider2D>();
-        sheet = Resources.LoadAll<Sprite>("Furnitures/" + id);
+        sheet = rm.GetSpriteSheet("Furnitures/" + id);
     }
 
     public void Rotate()
@@ -34,16 +35,10 @@ public class FurnitureController : MonoBehaviour
         sr.sprite = sheet[direction];
 
         // collider
-        Furniture furniture = gameData.items[id] as Furniture;
-        int[] size = furniture.GetSize();
+        int isPerpendicular = direction % 2;
 
-        bool isPerpendicular = direction % 2 == 1;
-        Vector2 newSize = isPerpendicular ? new(size[1], size[0]) : new(size[0], size[1]);
-        Vector2 newColSize = new(newSize.x - 0.1f, newSize.y - 0.1f);
-        Vector2 newColOffset = new((newSize.x - 1f) / 2, ((newSize.y - 1f) / 2) * -1);
-
-        col.size = newColSize;
-        col.offset = newColOffset;
+        col.size = furniture.GetColliderSize(isPerpendicular);
+        col.offset = furniture.GetColliderOffset(isPerpendicular);
     }
 
     public int GetDirection()
