@@ -71,14 +71,14 @@ public class MapGenerator : MonoBehaviour
             {
                 if (reservedBuildingMap[x, y] == 1)
                 {
-                    int xOffset = pseudoRandom.Next(-buildingOffset, buildingOffset + 1);
-                    int yOffset = pseudoRandom.Next(-buildingOffset, buildingOffset + 1);
+                    int xOffset = pseudoRandom.Next(0, buildingOffset + 1);
+                    int yOffset = pseudoRandom.Next(0, buildingOffset + 1);
 
                     // 안겹치나, 안나가나 테스트
                     bool test = true;
-                    for (int i = xOffset; i < buildingSize + xOffset; i++)
+                    for (int i = -xOffset; i < buildingSize + xOffset; i++)
                     {
-                        for (int j = yOffset; j < buildingSize + yOffset; j++)
+                        for (int j = -yOffset; j < buildingSize + yOffset; j++)
                         {
                             int px = x * buildingSize + i;
                             int py = y * buildingSize + j;
