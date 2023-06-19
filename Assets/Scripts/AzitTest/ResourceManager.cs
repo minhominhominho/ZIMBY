@@ -7,6 +7,7 @@ public class ResourceManager
     private static ResourceManager instance = new();
     public void Load()
     {
+        if (isReady) return;
         // Prefabs
         prefabs.Add("Prefabs/1000", Resources.Load<GameObject>("Prefabs/1000"));
         prefabs.Add("Prefabs/1001", Resources.Load<GameObject>("Prefabs/1001"));
@@ -34,9 +35,13 @@ public class ResourceManager
         spriteSheets.Add("Furnitures/1002", Resources.LoadAll<Sprite>("Furnitures/1002"));
         spriteSheets.Add("Furnitures/1003", Resources.LoadAll<Sprite>("Furnitures/1003"));
         spriteSheets.Add("Furnitures/1004", Resources.LoadAll<Sprite>("Furnitures/1004"));
+
+        isReady = true;
     }
     public static ResourceManager GetInstance() { return instance; }
     private ResourceManager() {}
+
+    private bool isReady = false;
 
     private Dictionary<string, GameObject> prefabs = new();
     private Dictionary<string, Sprite> sprites = new();
