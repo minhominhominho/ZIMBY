@@ -2,11 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// ·¦½Ç ÇÃÁ§¿¡¼­ Çß´ø ¹æ½Ä
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß´ï¿½ ï¿½ï¿½ï¿½
 
 public static class FixedValues
 {
-    
+    public static readonly int MAX_FURNITURE = 10000;
 }
 
 public static class MapValues
@@ -18,7 +18,7 @@ public static class MapValues
     public static readonly int MAP_BUILDINGFREQUENCY = 40;
 }
 
-// ¿¹½Ã
+// ï¿½ï¿½ï¿½ï¿½
 //public static class HTTPSource
 //{
 //    public static readonly string QUESTIONNAIRE_SURVEY = "/questionnaire/answers/";

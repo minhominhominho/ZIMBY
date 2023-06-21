@@ -15,18 +15,16 @@ public class AzitManager : MonoBehaviour
     {
         rm.Load();
 
-        List<FurnitureLocation> interior = gameData.GetAzitInterior();
-        foreach(FurnitureLocation location in interior)
+        gameData.DoAllFurnitureLocation((y, x, location) =>
         {
             GameObject obj = Instantiate<GameObject>(
-                rm.GetPrefab(location.id.ToString()),
-                location.pos,
-                Quaternion.identity
-            );
-            obj.name = location.id.ToString();
+                rm.GetPrefab(location.itemId.ToString()),
+                new Vector2((float)y / 2, (float)x / 2),
+                Quaternion.identity);
+            obj.name = location.itemId.ToString();
             obj.GetComponent<FurnitureController>().SetDirection(location.direction);
             obj.GetComponent<FurnitureController>().SetLocation(location);
-        }
+        });
     }
 
     void Update()

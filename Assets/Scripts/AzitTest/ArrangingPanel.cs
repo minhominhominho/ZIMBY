@@ -118,18 +118,19 @@ public class ArrangingPanel : MonoBehaviour
             if(Input.GetMouseButtonDown(0) && hoveredFurniture != null)
             {
                 FurnitureLocation location = hoveredFurniture.GetComponent<FurnitureController>().GetLocation();
+                Debug.Log(location.locationId);
 
                 // add furniture
-                gameData.AddItem(location.id, 1);
+                gameData.AddItem(location.itemId, 1);
 
                 // remove from gameData interior
-                gameData.removeFurniture(location);
+                gameData.removeFurniture(location.locationId);
 
                 // destroy
                 Destroy(hoveredFurniture.gameObject);
 
                 // Set Arrange Mode
-                SetArrangeMode(location.id);
+                SetArrangeMode(location.itemId);
             }
         }
     }
@@ -184,8 +185,9 @@ public class ArrangingPanel : MonoBehaviour
 
         // modify data
         gameData.AddItem(shadowItemId, -1);
-        FurnitureLocation location = new(shadowItemId, shadowPos, direction);
-        gameData.LocateFurniture(location);
+        FurnitureLocation location = gameData.LocateFurniture(shadowPos, shadowItemId, direction);
+        // TODO: No More Furniture Alarm
+        if (location == null) return;
 
         // make furniture
         GameObject arranged = Instantiate<GameObject>(shadowResource, shadowPos, Quaternion.identity);

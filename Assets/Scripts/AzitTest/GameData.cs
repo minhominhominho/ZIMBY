@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,7 +24,9 @@ public class GameData
     private float satisfaction = 0f;
     private int[] inventory = new int[10000];
     private bool[] learnedRecipes = new bool[10000];
-    private List<FurnitureLocation> azitInterior = new List<FurnitureLocation>();
+    private FurnitureLocation[] furnitureList = new FurnitureLocation[FixedValues.MAX_FURNITURE];
+    private int furnitureLocationId = 0;
+    private FurnitureLocation[,] interior = new FurnitureLocation[60, 40];
 
     public int[] GetInventory()
     {
@@ -35,9 +38,18 @@ public class GameData
         return learnedRecipes;
     }
 
-    public List<FurnitureLocation> GetAzitInterior()
+    public void DoAllFurnitureLocation(Action<int, int, FurnitureLocation> action)
     {
-        return azitInterior;
+        for(int i=0; i<interior.GetLength(0); i++)
+        {
+            for(int j=0; j < interior.GetLength(1); j++)
+            {
+                if (interior[i,j] != null)
+                {
+                    action(i, j, interior[i, j]);
+                }
+            }
+        }
     }
 
     private void InitItem()
@@ -90,8 +102,8 @@ public class GameData
         learnedRecipes[6008] = true;
 
         // azit interior
-        azitInterior.Add(new(1002, new(-3f, 3f, 0f), 0));
-        azitInterior.Add(new(1003, new(0f, 5f, 0f), 0));
+        LocateFurniture(new(10f, 19f), 1002, 0);
+        LocateFurniture(new(10f, 15.5f), 1003, 1);
     }
 
     public void AddItem(int what, int count)
@@ -118,13 +130,48 @@ public class GameData
         return result;
     }
 
-    public void LocateFurniture(FurnitureLocation fl)
+    public FurnitureLocation LocateFurniture(Vector2 pos, int itemId, int direction)
     {
-        this.azitInterior.Add(fl);
+        int locationId = GetAvailableFurnitureLocationId();
+
+        // if no more furniture
+        if (locationId == -1) return null;
+
+        FurnitureLocation location = new(locationId, itemId, direction);
+        interior[Mathf.RoundToInt(pos.x * 2), Mathf.RoundToInt(pos.y * 2)] = location;
+        furnitureList[locationId] = location;
+        return location;
     }
 
-    public void removeFurniture(FurnitureLocation location)
+    public void removeFurniture(int locationId)
     {
-        this.azitInterior.Remove(location);
+        bool isFound = false;
+        for (int i = 0; i < interior.GetLength(0); i++)
+        {
+            for (int j = 0; j < interior.GetLength(1); j++)
+            {
+                if (interior[i, j] != null && interior[i, j].locationId == locationId)
+                {
+                    interior[i, j] = null;
+                    furnitureList[locationId] = null;
+                    isFound = true;
+                    break;
+                }
+            }
+
+            if (isFound) break;
+        }
+
+
+    }
+
+    private int GetAvailableFurnitureLocationId()
+    {
+        for(int i=0; i<FixedValues.MAX_FURNITURE; i++)
+        {
+            if (furnitureList[i] == null) return i;
+        }
+
+        return -1;
     }
 }

@@ -3,14 +3,14 @@ using UnityEngine;
 
 public class FurnitureLocation
 {
-	public int id { get; }
-	public Vector3 pos { get; }
+	public int locationId { get; }
+	public int itemId { get; }
 	public int direction { get; }
 
-	public FurnitureLocation(int id, Vector3 pos, int direction)
+	public FurnitureLocation(int locationId, int itemId, int direction)
 	{
-		this.id = id;
-		this.pos = pos;
+		this.locationId = locationId;
+		this.itemId = itemId;
 		this.direction = direction;
 	}
 }
