@@ -20,13 +20,15 @@ public class GameData
     public Recipe[] recipes = new Recipe[10000];
 
     // InGame Data
-    private long day = 1;
+    private long day = 0;
     private float satisfaction = 0f;
     private int[] inventory = new int[10000];
     private bool[] learnedRecipes = new bool[10000];
+
     private FurnitureLocation[] furnitureList = new FurnitureLocation[FixedValues.MAX_FURNITURE];
     private int furnitureLocationId = 0;
     private FurnitureLocation[,] interior = new FurnitureLocation[60, 40];
+    private List<GardenLocation> gardenList = new List<GardenLocation>();
 
     public int[] GetInventory()
     {
@@ -36,6 +38,16 @@ public class GameData
     public bool[] GetLearnedRecipes()
     {
         return learnedRecipes;
+    }
+
+    public void GoodMorning()
+    {
+        day++;
+
+        // Garden
+        foreach(GardenLocation location in gardenList) {
+            location.GetOld();
+        }
     }
 
     public void DoAllFurnitureLocation(Action<int, int, FurnitureLocation> action)
@@ -137,7 +149,14 @@ public class GameData
         // if no more furniture
         if (locationId == -1) return null;
 
-        FurnitureLocation location = new(locationId, itemId, direction);
+        FurnitureLocation location;
+        if (IsGarden(itemId))
+        {
+            location = new GardenLocation(locationId, itemId, direction);
+            gardenList.Add(location as GardenLocation);
+        }
+        else location = new(locationId, itemId, direction);
+
         interior[Mathf.RoundToInt(pos.x * 2), Mathf.RoundToInt(pos.y * 2)] = location;
         furnitureList[locationId] = location;
         return location;
@@ -152,6 +171,11 @@ public class GameData
             {
                 if (interior[i, j] != null && interior[i, j].locationId == locationId)
                 {
+                    if(furnitureList[locationId].IsGarden())
+                    {
+                        gardenList.Remove(furnitureList[locationId] as GardenLocation);
+                    }
+
                     interior[i, j] = null;
                     furnitureList[locationId] = null;
                     isFound = true;
@@ -173,5 +197,11 @@ public class GameData
         }
 
         return -1;
+    }
+
+    private bool IsGarden(int itemId)
+    {
+        // TODO: what is garden code?
+        return itemId == 1005;
     }
 }

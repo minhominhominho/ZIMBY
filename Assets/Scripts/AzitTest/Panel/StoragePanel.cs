@@ -12,9 +12,9 @@ public class StoragePanel : MonoBehaviour
     public GameObject itemInfo;
     public GameObject itemInfoContent;
 
-    private GameData gameData = GameData.GetInstance();
-    private ResourceManager rm = ResourceManager.GetInstance();
-    private List<GameObject> itemObjects = new List<GameObject>();
+    protected GameData gameData = GameData.GetInstance();
+    protected ResourceManager rm = ResourceManager.GetInstance();
+    protected List<GameObject> itemObjects = new List<GameObject>();
 
     private void OnEnable()
     {

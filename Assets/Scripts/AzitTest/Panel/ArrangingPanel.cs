@@ -118,7 +118,6 @@ public class ArrangingPanel : MonoBehaviour
             if(Input.GetMouseButtonDown(0) && hoveredFurniture != null)
             {
                 FurnitureLocation location = hoveredFurniture.GetComponent<FurnitureController>().GetLocation();
-                Debug.Log(location.locationId);
 
                 // add furniture
                 gameData.AddItem(location.itemId, 1);
@@ -194,6 +193,7 @@ public class ArrangingPanel : MonoBehaviour
         arranged.name = shadowItemId.ToString();
         arranged.GetComponent<FurnitureController>().SetDirection(direction);
         arranged.GetComponent<FurnitureController>().SetLocation(location);
+        if (location.IsGarden()) arranged.GetComponent<GardenController>().SetGarden(location as GardenLocation);
 
         // arrange mode off
         SetArrangeMode(-1);

@@ -265,6 +265,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1261233082}
     - target: {fileID: 6749757401153228565, guid: ba3458ca83391413bad93153a2275d8a, type: 3}
+      propertyPath: gardenPanel
+      value: 
+      objectReference: {fileID: 705066648}
+    - target: {fileID: 6749757401153228565, guid: ba3458ca83391413bad93153a2275d8a, type: 3}
       propertyPath: storagePanel
       value: 
       objectReference: {fileID: 1287663286}
@@ -1935,7 +1939,7 @@ GameObject:
   - component: {fileID: 705066649}
   - component: {fileID: 705066652}
   - component: {fileID: 705066651}
-  - component: {fileID: 705066650}
+  - component: {fileID: 705066653}
   m_Layer: 5
   m_Name: GardenPanel
   m_TagString: Untagged
@@ -1965,22 +1969,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -0.5}
   m_SizeDelta: {x: 500, y: 500}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &705066650
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 705066648}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 58dd94dd7b5f4438ca042b9d4c55d111, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemFrame: {fileID: 9193875041887230695, guid: 2f5542ebe5c2c4376a7f765b800dc453, type: 3}
-  content: {fileID: 718416766}
-  itemInfo: {fileID: 712741269}
-  itemInfoContent: {fileID: 1075316274}
 --- !u!114 &705066651
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2019,6 +2007,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705066648}
   m_CullTransparentMesh: 1
+--- !u!114 &705066653
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 705066648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 939f8baa9d6e9481f9b147709a2368d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemFrame: {fileID: 9193875041887230695, guid: 167026dc6be9244119f55e0a88890d94, type: 3}
+  content: {fileID: 718416766}
+  itemInfo: {fileID: 712741269}
+  itemInfoContent: {fileID: 1075316274}
+  am: {fileID: 1920544902}
 --- !u!1 &707240212
 GameObject:
   m_ObjectHideFlags: 0

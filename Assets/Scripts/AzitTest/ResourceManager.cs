@@ -39,6 +39,8 @@ public class ResourceManager
         spriteSheets.Add("Furnitures/1003", Resources.LoadAll<Sprite>("Furnitures/1003"));
         spriteSheets.Add("Furnitures/1004", Resources.LoadAll<Sprite>("Furnitures/1004"));
         spriteSheets.Add("Furnitures/1005", Resources.LoadAll<Sprite>("Furnitures/1005"));
+        spriteSheets.Add("Seeds/4000", Resources.LoadAll<Sprite>("Seeds/4000"));
+
 
         isReady = true;
     }
@@ -64,6 +66,11 @@ public class ResourceManager
     public Sprite[] GetSpriteSheet(string path)
     {
         return spriteSheets[path];
+    }
+
+    public Sprite[] GetSeed(string path)
+    {
+        return GetSpriteSheet("Seeds/" + path);
     }
 
     public GameObject GetPrefab(string path)

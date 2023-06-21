@@ -55,7 +55,7 @@ public class CharacterController : MonoBehaviour
 
                 if (Input.GetKeyDown(KeyCode.E))
                 {
-                    azitManager.UseFurniture(hitCollider.tag);
+                    azitManager.UseFurniture(hitCollider.gameObject);
                 }
             }
             else

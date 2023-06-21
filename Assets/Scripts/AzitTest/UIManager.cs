@@ -10,6 +10,7 @@ public class UIManager : MonoBehaviour
     public GameObject arrangingPanel;
     public GameObject leavePanel;
     public GameObject cookPanel;
+    public GameObject gardenPanel;
 
     // 유저와 상호작용하는 Panel이 열려있는 지 여부 (Storage, Counter, ...)
     private bool isPanelOpen = false;
@@ -51,6 +52,10 @@ public class UIManager : MonoBehaviour
         {
             cookPanel.SetActive(true);
             openedPanel = cookPanel;
+        } else if (panelName == "Garden")
+        {
+            gardenPanel.SetActive(true);
+            openedPanel = gardenPanel;
         }
     }
 
