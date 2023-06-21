@@ -16,6 +16,7 @@ public static class MapValues
     public static readonly int MAP_BUILDINGSIZE = 10;
     public static readonly int MINBUILDINGGAP = 1;
     public static readonly int MAP_BUILDINGFREQUENCY = 40;
+    public static readonly int MAP_BUILDINGNUM = 5;     // 더 좋게 표현할 방법?
 }
 
 // 예시

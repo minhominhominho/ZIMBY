@@ -7,9 +7,19 @@ using UnityEngine;
 using UnityEngine.Pool;
 
 
-enum MapFlag : ushort
+
+
+[Flags]
+enum MapFlag : int
 {
-    None, Building, BuildingCenter,
+    None = 0,
+    Center = 1,
+    BuildingA = 2,
+    BuildingB = 4,
+    BuildingC = 8,
+    BuildingD = 16,
+    BuildingE = 32,
+
 }
 
 public struct MapItem
@@ -119,7 +129,7 @@ public class MapGenerator : MonoBehaviour
                     int xOffset = pseudoRandom.Next(-maxOffset, maxOffset + 1);
                     int yOffset = pseudoRandom.Next(-maxOffset, maxOffset + 1);
 
-                    // 안겹치나, 안나가나 테스트
+                    // 다른 건물과 겹치는지, 맵을 나가는지 확인
                     bool isOverllaped = false;
                     for (int i = 0; i < extendedBuildingSize; i++)
                     {
@@ -128,7 +138,7 @@ public class MapGenerator : MonoBehaviour
                             int px = x * extendedBuildingSize + xOffset + i;
                             int py = y * extendedBuildingSize + yOffset + j;
 
-                            if (extendedMapSize <= px || 0 > px || extendedMapSize <= py || 0 > py || generatedMap[px, py] > 0)
+                            if (extendedMapSize <= px || 0 > px || extendedMapSize <= py || 0 > py || generatedMap[px, py] > MapFlag.None)
                             {
                                 isOverllaped = true;
                                 break;
@@ -138,25 +148,34 @@ public class MapGenerator : MonoBehaviour
                         if (isOverllaped) break;
                     }
 
-                    // 테스트 통과했으면 집 그리기
+                    // 통과했으면 건물 그리기
                     if (!isOverllaped)
                     {
+                        MapFlag buildingFlag = GetRandomBuilding();
+                        Debug.Log(buildingFlag);
+
                         for (int i = 0; i < extendedBuildingSize; i++)
                         {
                             for (int j = 0; j < extendedBuildingSize; j++)
                             {
                                 int px = x * extendedBuildingSize + xOffset + i;
                                 int py = y * extendedBuildingSize + yOffset + j;
-                                generatedMap[px, py] = MapFlag.Building;
+                                generatedMap[px, py] = buildingFlag;
                             }
                         }
 
-                        generatedMap[x * extendedBuildingSize + extendedBuildingSize / 2 + xOffset, y * extendedBuildingSize + extendedBuildingSize / 2 + yOffset] = MapFlag.BuildingCenter;
+                        generatedMap[x * extendedBuildingSize + extendedBuildingSize / 2 + xOffset, y * extendedBuildingSize + extendedBuildingSize / 2 + yOffset] = MapFlag.Center | buildingFlag;
                     }
                 }
             }
         }
     }
+
+    MapFlag GetRandomBuilding()
+    {
+        return (MapFlag)((int)MapFlag.BuildingA << pseudoRandom.Next(0, MapValues.MAP_BUILDINGNUM));
+    }
+
     #endregion
 
 
@@ -176,7 +195,7 @@ public class MapGenerator : MonoBehaviour
             {
                 for (int y = 0; y < extendedMapSize; y++)
                 {
-                    if (generatedMap[x, y] == MapFlag.BuildingCenter)
+                    if ((generatedMap[x, y] & MapFlag.Center) == true)
                     {
                         if (buildings[buildingCount] == null)
                         {
