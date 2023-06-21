@@ -20,6 +20,7 @@ public class GameData
 
     // InGame Data
     private long day = 1;
+    private float satisfaction = 0f;
     private int[] inventory = new int[10000];
     private bool[] learnedRecipes = new bool[10000];
     private List<FurnitureLocation> azitInterior = new List<FurnitureLocation>();
@@ -51,9 +52,13 @@ public class GameData
         recipes[1003] = new(6000, 3, 6001, 3);
         items[1004] = new Furniture("Stove 1", "", 2, 3, new(1.8f, 1.8f, 0f, -.5f, 1.8f, 1.8f, 0f, -.5f));
         recipes[1004] = new(6007, 3, 6008, 3, 6009, 1);
+        items[1005] = new Furniture("Garden 1", "Let's Nongsa", 3, 3, new(2.8f, 2.8f, 0f, 0f, 2.8f, 2.8f, 0f, 0f));
+        recipes[1005] = new(6008, 3, 6000, 5);
 
         items[3000] = new("French Fries", "Delicious");
         recipes[3000] = new(5000, 3);
+
+        items[4000] = new("Potato Seed", "");
 
         items[5000] = new("Potato", "");
 
@@ -77,6 +82,7 @@ public class GameData
         learnedRecipes[1002] = true;
         learnedRecipes[1003] = true;
         learnedRecipes[1004] = true;
+        learnedRecipes[1005] = true;
 
         learnedRecipes[3000] = true;
 

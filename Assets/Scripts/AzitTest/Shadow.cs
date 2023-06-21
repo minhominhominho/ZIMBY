@@ -18,9 +18,7 @@ public class Shadow : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        Debug.Log("Exit: " + collision.name);        
         colliders.Remove(collision);
-        Debug.Log("HasCollider: " + HasCollider());
         if (!HasCollider())
         {
             isValid = true;

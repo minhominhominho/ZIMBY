@@ -14,6 +14,7 @@ public class ResourceManager
         prefabs.Add("Prefabs/1002", Resources.Load<GameObject>("Prefabs/1002"));
         prefabs.Add("Prefabs/1003", Resources.Load<GameObject>("Prefabs/1003"));
         prefabs.Add("Prefabs/1004", Resources.Load<GameObject>("Prefabs/1004"));
+        prefabs.Add("Prefabs/1005", Resources.Load<GameObject>("Prefabs/1005"));
 
         // Sprites
         sprites.Add("Icons/1000", Resources.Load<Sprite>("Icons/1000"));
@@ -21,7 +22,9 @@ public class ResourceManager
         sprites.Add("Icons/1002", Resources.Load<Sprite>("Icons/1002"));
         sprites.Add("Icons/1003", Resources.Load<Sprite>("Icons/1003"));
         sprites.Add("Icons/1004", Resources.Load<Sprite>("Icons/1004"));
+        sprites.Add("Icons/1005", Resources.Load<Sprite>("Icons/1005"));
         sprites.Add("Icons/3000", Resources.Load<Sprite>("Icons/3000"));
+        sprites.Add("Icons/4000", Resources.Load<Sprite>("Icons/4000"));
         sprites.Add("Icons/5000", Resources.Load<Sprite>("Icons/5000"));
         sprites.Add("Icons/6000", Resources.Load<Sprite>("Icons/6000"));
         sprites.Add("Icons/6001", Resources.Load<Sprite>("Icons/6001"));
@@ -35,6 +38,7 @@ public class ResourceManager
         spriteSheets.Add("Furnitures/1002", Resources.LoadAll<Sprite>("Furnitures/1002"));
         spriteSheets.Add("Furnitures/1003", Resources.LoadAll<Sprite>("Furnitures/1003"));
         spriteSheets.Add("Furnitures/1004", Resources.LoadAll<Sprite>("Furnitures/1004"));
+        spriteSheets.Add("Furnitures/1005", Resources.LoadAll<Sprite>("Furnitures/1005"));
 
         isReady = true;
     }

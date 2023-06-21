@@ -46,6 +46,6 @@ public class AzitManager : MonoBehaviour
 
     private bool HasToOpenPanel(string tag)
     {
-        return tag == "CraftingTable" || tag == "Storage" || tag == "Door" || tag == "Stove";
+        return tag == "CraftingTable" || tag == "Storage" || tag == "Door" || tag == "Stove" || tag == "Garden";
     }
 }

@@ -8,6 +8,7 @@ TagManager:
   - Storage
   - Door
   - Stove
+  - Garden
   layers:
   - Default
   - TransparentFX
