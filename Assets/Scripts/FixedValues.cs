@@ -6,7 +6,7 @@ using UnityEngine;
 
 public static class FixedValues
 {
-    
+
 }
 
 public static class MapValues
@@ -16,7 +16,8 @@ public static class MapValues
     public static readonly int MAP_BUILDINGSIZE = 10;
     public static readonly int MINBUILDINGGAP = 1;
     public static readonly int MAP_BUILDINGFREQUENCY = 40;
-    public static readonly int MAP_BUILDINGNUM = 5;     // 더 좋게 표현할 방법?
+    public static readonly int[] dx = new int[] { 0, 0, 1, -1 };
+    public static readonly int[] dy = new int[] { 1, -1, 0, 0 };
 }
 
 // 예시
