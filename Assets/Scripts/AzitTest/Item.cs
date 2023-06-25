@@ -16,4 +16,6 @@ public class Item
 		this.name = name;
 		this.description = description;
 	}
+
+	public Sprite sprite; // 임시
 }

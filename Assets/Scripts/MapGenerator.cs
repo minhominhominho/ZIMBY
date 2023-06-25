@@ -2,50 +2,94 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Pool;
 
+
+enum MapFlag : ushort
+{
+    None, Building, BuildingCenter,
+}
+
+public struct MapItem
+{
+    public Vector3 pos;
+    public bool isActive;
+
+    public Item item;
+    public GameObject gameObject;
+
+    public int key;
+    // 아이템과 상호작용할 때, key로 private Dictionary<int, MapItem> mapItems = new Dictionary<int, MapItem>()에 접근
+}
 
 public class MapGenerator : MonoBehaviour
 {
-    private System.Random pseudoRandom;
-    private int[,] placedBuildingMap;
-    private int[,] reservedBuildingMap;
-    private int buildingWidth;
-    private int buildingHeight;
-
     public string seed;
-    public int width;
-    public int height;
+    private System.Random pseudoRandom;
+
+
+    [Header("Map & Building")]
+    public int mapSize;
+    private int extendedMapSize;
     public int buildingSize;
-    public int buildingOffset;
+    private int extendedBuildingSize;
+    public int minBuildingGap;
+
+    private int[,] buildingMap;
+    private int buildingMapSize;
+
+    private MapFlag[,] generatedMap;
+
+    [Range(0, 1)] public float buildingOffset;
     [Range(0, 100)] public int buildingFrequency;
+
+
+    [Header("Objects & Sprites")]
+    public GameObject building;
+    public GameObject land;
+
+    private GameObject[] buildings = new GameObject[100];
+    private List<GameObject> loads = new List<GameObject>();
+    private Dictionary<int, MapItem> mapItems = new Dictionary<int, MapItem>();
 
 
 
     void Update()
     {
-        SetMapGenerator();
-        GenerateMap();
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            Init();
+            GenerateMap();
+            DrawMap();
+        }
     }
 
-    void SetMapGenerator()
+    void Init()
     {
         if (seed.Length <= 0) seed = Time.time.ToString();
         pseudoRandom = new System.Random(seed.GetHashCode());
 
-        if (width <= 0) width = MapValues.MAP_WIDTH;
-        if (height <= 0) width = MapValues.MAP_HEIGHT;
+        if (mapSize <= 0) mapSize = MapValues.MAP_SIZE;
         if (buildingSize <= 0) buildingSize = MapValues.MAP_BUILDINGSIZE;
+        if (minBuildingGap < 0) minBuildingGap = MapValues.MINBUILDINGGAP;
 
-        buildingWidth = width / buildingSize;
-        buildingHeight = height / buildingSize;
+        extendedBuildingSize = buildingSize + minBuildingGap;
+        buildingMapSize = mapSize / buildingSize;
+        extendedMapSize = buildingMapSize * extendedBuildingSize;
+        land.transform.localScale = new Vector3(extendedMapSize, extendedMapSize, extendedMapSize);
+        land.transform.position = new Vector3(extendedMapSize / 2, extendedMapSize / 2, 0);
 
-        reservedBuildingMap = new int[buildingWidth, buildingHeight];
-        placedBuildingMap = new int[width, height];
 
+        buildingMap = new int[buildingMapSize, buildingMapSize];
+        generatedMap = new MapFlag[extendedMapSize, extendedMapSize];
+
+        if (buildingOffset < 0) buildingOffset = 0;
         if (buildingFrequency <= 0) buildingFrequency = MapValues.MAP_BUILDINGFREQUENCY;
     }
 
+    #region GenerateMap()
     void GenerateMap()
     {
         ReserveBuildings();
@@ -54,86 +98,103 @@ public class MapGenerator : MonoBehaviour
 
     void ReserveBuildings()
     {
-        for (int x = 0; x < buildingWidth; x++)
+        for (int x = 0; x < buildingMapSize; x++)
         {
-            for (int y = 0; y < buildingHeight; y++)
+            for (int y = 0; y < buildingMapSize; y++)
             {
-                reservedBuildingMap[x, y] = (pseudoRandom.Next(0, 100) < buildingFrequency) ? 1 : 0;
+                buildingMap[x, y] = (pseudoRandom.Next(0, 100) <= buildingFrequency) ? 1 : 0;
             }
         }
     }
 
     void PlaceBuildings()
     {
-        for (int x = 0; x < buildingWidth; x++)
+        for (int x = 0; x < buildingMapSize; x++)
         {
-            for (int y = 0; y < buildingHeight; y++)
+            for (int y = 0; y < buildingMapSize; y++)
             {
-                if (reservedBuildingMap[x, y] == 1)
+                if (buildingMap[x, y] == 1)
                 {
-                    int xOffset = pseudoRandom.Next(-buildingOffset, buildingOffset + 1);
-                    int yOffset = pseudoRandom.Next(-buildingOffset, buildingOffset + 1);
+                    int maxOffset = (int)(buildingOffset * buildingSize);
+                    int xOffset = pseudoRandom.Next(-maxOffset, maxOffset + 1);
+                    int yOffset = pseudoRandom.Next(-maxOffset, maxOffset + 1);
 
                     // 안겹치나, 안나가나 테스트
-                    bool test = true;
-                    for (int i = xOffset; i < buildingSize + xOffset; i++)
+                    bool isOverllaped = false;
+                    for (int i = 0; i < extendedBuildingSize; i++)
                     {
-                        for (int j = yOffset; j < buildingSize + yOffset; j++)
+                        for (int j = 0; j < extendedBuildingSize; j++)
                         {
-                            int px = x * buildingSize + i;
-                            int py = y * buildingSize + j;
+                            int px = x * extendedBuildingSize + xOffset + i;
+                            int py = y * extendedBuildingSize + yOffset + j;
 
-                            if (width <= px || 0 > px || height <= py || 0 > py)
+                            if (extendedMapSize <= px || 0 > px || extendedMapSize <= py || 0 > py || generatedMap[px, py] > 0)
                             {
-                                test = false;
+                                isOverllaped = true;
                                 break;
                             }
-
-                            if(placedBuildingMap[px, py] == 1)
-                            {
-                                test = false;
-                                break;
-                            }
-
-                            placedBuildingMap[px, py] = 1;
                         }
 
-                        if (!test) break;
+                        if (isOverllaped) break;
                     }
 
-                    // 테스트 통과했으면 집그리기
-                    if (test)
+                    // 테스트 통과했으면 집 그리기
+                    if (!isOverllaped)
                     {
-                        for (int i = xOffset; i < buildingSize + xOffset; i++)
+                        for (int i = 0; i < extendedBuildingSize; i++)
                         {
-                            for (int j = yOffset; j < buildingSize + yOffset; j++)
+                            for (int j = 0; j < extendedBuildingSize; j++)
                             {
-                                int px = x * buildingSize + i;
-                                int py = y * buildingSize + j;
-                                placedBuildingMap[px, py] = 2;
+                                int px = x * extendedBuildingSize + xOffset + i;
+                                int py = y * extendedBuildingSize + yOffset + j;
+                                generatedMap[px, py] = MapFlag.Building;
                             }
                         }
+
+                        generatedMap[x * extendedBuildingSize + extendedBuildingSize / 2 + xOffset, y * extendedBuildingSize + extendedBuildingSize / 2 + yOffset] = MapFlag.BuildingCenter;
                     }
                 }
             }
         }
     }
+    #endregion
 
 
-
-    void OnDrawGizmos()
+    #region DrawMap()
+    void DrawMap()
     {
-        if (placedBuildingMap != null)
+        for (int i = 0; i < 100; i++)
         {
-            for (int x = 0; x < width; x++)
+            if (buildings[i] != null) buildings[i].SetActive(false);
+        }
+
+        int buildingCount = 0;
+
+        if (generatedMap != null)
+        {
+            for (int x = 0; x < extendedMapSize; x++)
             {
-                for (int y = 0; y < height; y++)
+                for (int y = 0; y < extendedMapSize; y++)
                 {
-                    Gizmos.color = (placedBuildingMap[x, y] == 2) ? Color.blue : Color.black;
-                    Vector3 pos = new Vector3(x + .5f, y + .5f, 0);
-                    Gizmos.DrawCube(pos, Vector3.one);
+                    if (generatedMap[x, y] == MapFlag.BuildingCenter)
+                    {
+                        if (buildings[buildingCount] == null)
+                        {
+                            building.transform.localScale = new Vector3(buildingSize, buildingSize, buildingSize);
+                            buildings[buildingCount] = Instantiate(building, new Vector3(x, y, 0), Quaternion.identity, this.gameObject.transform);
+                        }
+                        else
+                        {
+                            buildings[buildingCount].transform.position = new Vector3(x, y, 0);
+                            buildings[buildingCount].transform.localScale = new Vector3(buildingSize, buildingSize, buildingSize);
+                        }
+
+                        buildings[buildingCount].SetActive(true);
+                        buildingCount++;
+                    }
                 }
             }
         }
     }
+    #endregion
 }

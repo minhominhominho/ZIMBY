@@ -12,9 +12,9 @@ public static class FixedValues
 public static class MapValues
 {
     // Standard Map Values
-    public static readonly int MAP_WIDTH = 100;
-    public static readonly int MAP_HEIGHT = 100;
+    public static readonly int MAP_SIZE = 100;
     public static readonly int MAP_BUILDINGSIZE = 10;
+    public static readonly int MINBUILDINGGAP = 1;
     public static readonly int MAP_BUILDINGFREQUENCY = 40;
 }
 
