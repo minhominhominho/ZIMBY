@@ -8,6 +8,7 @@ using TMPro;
 public class GardenPanel : StoragePanel
 {
     public AzitManager am;
+    public UIManager um;
 
     private void OnEnable()
     {
@@ -52,6 +53,8 @@ public class GardenPanel : StoragePanel
 
     private void OnClickItem(int itemId)
     {
+        gameData.AddItem(itemId, -1);
         am.PlantSeed(itemId);
+        um.ClosePanel();
     }
 }

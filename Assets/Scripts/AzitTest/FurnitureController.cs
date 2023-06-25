@@ -64,6 +64,7 @@ public class FurnitureController : MonoBehaviour
 
     public void OnHoverExit()
     {
+        Debug.Log("HOVER EXIT");
         sr.color = Color.white;
     }
 }

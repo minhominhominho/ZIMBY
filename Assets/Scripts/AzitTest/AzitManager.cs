@@ -48,23 +48,42 @@ public class AzitManager : MonoBehaviour
     {
         string tag = furniture.tag;
 
-        if(HasToOpenPanel(tag))
+        if (HasToOpenPanel(tag))
         {
             uiManager.OpenPanel(tag);
-            if(tag == "Garden")
+
+        }
+        else if (tag == "Garden")
+        {
+            selectedGarden = furniture;
+            int plantAge = furniture.GetComponent<GardenController>().GetPlantAge();
+            Debug.Log(plantAge);
+            if (plantAge == -1)
             {
-                selectedGarden = furniture;
+                uiManager.OpenPanel(tag);
+            } else if(plantAge < 3)
+            {
+                uiManager.OpenPanel("ResetGarden");
+            } else if(plantAge == 3)
+            {
+                furniture.GetComponent<GardenController>().Harvest();
             }
         }
     }
 
     private bool HasToOpenPanel(string tag)
     {
-        return tag == "CraftingTable" || tag == "Storage" || tag == "Door" || tag == "Stove" || tag == "Garden";
+        return tag == "CraftingTable" || tag == "Storage" || tag == "Door" || tag == "Stove";
+    }
+
+    public void ResetGarden()
+    {
+        selectedGarden.GetComponent<GardenController>().ResetGarden();
     }
 
     public void PlantSeed(int itemId)
     {
+        Debug.Log(selectedGarden);
         selectedGarden.GetComponent<GardenController>().PlantSeed(itemId);
     }
 }

@@ -29,6 +29,7 @@ public class ArrangingPanel : MonoBehaviour
 
     private void OnDisable()
     {
+        if (hoveredFurniture != null) hoveredFurniture.GetComponent<FurnitureController>().OnHoverExit();
         resetMyFurnitures();
     }
 

@@ -98,6 +98,8 @@ public class GameData
     private void ForTest() {
         inventory[1000]++;
         inventory[1004]++;
+        inventory[1005]++;
+        inventory[4000]++;
         inventory[6000] += 20;
         inventory[6001] += 20;
 
