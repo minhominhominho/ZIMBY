@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using static UnityEditor.FilePathAttribute;
 
 public class ArrangingPanel : MonoBehaviour
 {
@@ -16,7 +17,8 @@ public class ArrangingPanel : MonoBehaviour
     private ResourceManager rm = ResourceManager.GetInstance(); 
 
     private List<GameObject> arrangableItemObjectList = new List<GameObject>();
-    private GameObject shadowResource = null;
+    private bool isRearrangeMode = false;
+    private Vector3 beforeRearrangePos = Vector3.zero;
     private GameObject shadow = null;
     private int shadowItemId = -1;
 
@@ -49,7 +51,7 @@ public class ArrangingPanel : MonoBehaviour
                     arrangableItemObject.transform.GetChild(0).GetComponent<Image>().sprite = rm.GetIcon(i.ToString());
                     arrangableItemObject.transform.GetChild(1).GetComponent<TMP_Text>().text = gameData.items[i].GetName();
                     int itemId = i;
-                    arrangableItemObject.GetComponent<Button>().onClick.AddListener(() => SetArrangeMode(itemId));
+                    arrangableItemObject.GetComponent<Button>().onClick.AddListener(() => OnClickNewFurniture(itemId));
                 }
             }
         }
@@ -73,7 +75,7 @@ public class ArrangingPanel : MonoBehaviour
         {
             if(Input.GetKeyDown(KeyCode.Escape))
             {
-                SetArrangeMode(-1);
+                SetArrangeMode(false);
                 return;
             }
 
@@ -116,36 +118,53 @@ public class ArrangingPanel : MonoBehaviour
                 }
             }
 
+            // 가구 재배치를 위해 클릭했을 때
             if(Input.GetMouseButtonDown(0) && hoveredFurniture != null)
             {
-                FurnitureLocation location = hoveredFurniture.GetComponent<FurnitureController>().GetLocation();
-
-                // add furniture
-                gameData.AddItem(location.itemId, 1);
-
-                // remove from gameData interior
-                gameData.removeFurniture(location.locationId);
-
-                // destroy
-                Destroy(hoveredFurniture.gameObject);
-
                 // Set Arrange Mode
-                SetArrangeMode(location.itemId);
+                OnClickArrangedFurniture();
             }
         }
+    }
+
+    private void OnClickNewFurniture(int itemId)
+    {
+        GameObject shadowResource = rm.GetPrefab(itemId.ToString());
+        shadow = Instantiate<GameObject>(shadowResource, Vector3.zero, Quaternion.identity);
+        shadowItemId = itemId;
+        SetArrangeMode(true);
+    }
+
+    private void OnClickArrangedFurniture()
+    {
+        this.isRearrangeMode = true;
+        this.beforeRearrangePos = hoveredFurniture.transform.position;
+        shadow = hoveredFurniture.gameObject;
+        SetArrangeMode(true);
     }
 
     /// <summary>
     /// 가구 배치 모드 설정해주는 함수
     /// </summary>
     /// <param name="itemId">표시하려는 아이템의 id, -1이면 shadow 삭제</param>
-    private void SetArrangeMode(int itemId)
+    private void SetArrangeMode(bool isArrangeMode)
     {
-        if (itemId == -1)
+        // EXIT ARRANGE MODE
+        if (!isArrangeMode)
         {
-            // destroy shadow
-            Destroy(shadow);
+            if(isRearrangeMode)
+            {
+                shadow.transform.position = beforeRearrangePos;
+                shadow.GetComponent<BoxCollider2D>().isTrigger = false;
+                Destroy(shadow.GetComponent<Shadow>());
+
+                isRearrangeMode = false;
+                beforeRearrangePos = Vector3.zero;
+            }
+
+            // make shadow null
             shadow = null;
+            shadowItemId = -1;
 
             // unlock GetKey
             uiManager.LockGetKey(false);
@@ -156,20 +175,14 @@ public class ArrangingPanel : MonoBehaviour
 
             // show panel again
             arrangablePanel.SetActive(true);
-
-            // initialize
-            shadowResource = null;
-            shadow = null;
-            shadowItemId = -1;
         }
         else
         {
-            // show Shadow
-            shadowResource = rm.GetPrefab(itemId.ToString());
-            shadow = Instantiate<GameObject>(shadowResource, Vector3.zero, Quaternion.identity);
+            Debug.Assert(shadow != null, "Enter Arrange Mode but shadow is null");
+
+            // set Shadow
             shadow.GetComponent<BoxCollider2D>().isTrigger = true;
             shadow.AddComponent<Shadow>();
-            shadowItemId = itemId;
 
             // lock uiManager GetKey
             uiManager.LockGetKey(true);
@@ -181,23 +194,39 @@ public class ArrangingPanel : MonoBehaviour
 
     private void Arrange(Vector3 shadowPos)
     {
-        int direction = shadow.GetComponent<FurnitureController>().GetDirection();
+        FurnitureController controller = shadow.GetComponent<FurnitureController>();
+        int direction = controller.GetDirection();
 
-        // modify data
-        gameData.AddItem(shadowItemId, -1);
-        FurnitureLocation location = gameData.LocateFurniture(shadowPos, shadowItemId, direction);
-        // TODO: No More Furniture Alarm
-        if (location == null) return;
+        FurnitureLocation location = null;
+
+        // modify Game Data
+        if(isRearrangeMode)
+        {
+            beforeRearrangePos = shadowPos;
+            int locationId = controller.GetLocation().locationId;
+            location = gameData.RelocateFurniture(locationId, shadowPos);
+            // TODO: No More Furniture Alarm
+            if (location == null) return;
+        } else
+        {
+            gameData.AddItem(shadowItemId, -1);
+            location = gameData.LocateFurniture(shadowPos, shadowItemId, direction);
+            // TODO: No More Furniture Alarm
+            if (location == null) return;
+        }
+
 
         // make furniture
-        GameObject arranged = Instantiate<GameObject>(shadowResource, shadowPos, Quaternion.identity);
-        arranged.name = shadowItemId.ToString();
-        arranged.GetComponent<FurnitureController>().SetDirection(direction);
-        arranged.GetComponent<FurnitureController>().SetLocation(location);
-        if (location.IsGarden()) arranged.GetComponent<GardenController>().SetGarden(location as GardenLocation);
+        shadow.name = location.itemId.ToString();
+        shadow.GetComponent<BoxCollider2D>().isTrigger = false;
+        Destroy(shadow.GetComponent<Shadow>());
+        if (!isRearrangeMode)
+        {
+            controller.SetLocation(location);
+            if (location.IsGarden()) shadow.GetComponent<GardenController>().SetGarden(location as GardenLocation);
+        }
 
         // arrange mode off
-        SetArrangeMode(-1);
-
+        SetArrangeMode(false);
     }
 }
