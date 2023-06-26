@@ -20,7 +20,6 @@ public class ArrangingPanel : MonoBehaviour
     private bool isRearrangeMode = false;
     private Vector3 beforeRearrangePos = Vector3.zero;
     private GameObject shadow = null;
-    private int shadowItemId = -1;
 
     private Collider2D hoveredFurniture = null;
 
@@ -107,9 +106,11 @@ public class ArrangingPanel : MonoBehaviour
                 }
                 else if (hoveredFurniture != hit.collider)
                 {
-                    hoveredFurniture.GetComponent<FurnitureController>().OnHoverExit();
+                    FurnitureController hfc = hoveredFurniture.GetComponent<FurnitureController>();
+
+                    hfc.OnHoverExit();
                     hoveredFurniture = hit.collider;
-                    hoveredFurniture.GetComponent<FurnitureController>().OnHoverEnter();
+                    hfc.OnHoverEnter();
                 }
             }
             else
@@ -127,6 +128,32 @@ public class ArrangingPanel : MonoBehaviour
                 // Set Arrange Mode
                 OnClickArrangedFurniture();
             }
+            // 가구 철거를 위해 오른쪽 클릭했을 때
+            else if(Input.GetMouseButtonDown(1) && hoveredFurniture != null)
+            {
+                FurnitureLocation location = hoveredFurniture.GetComponent<FurnitureController>().GetLocation();
+
+                Debug.Log("가구 " + location.itemId + " 삭제 시도");
+
+                // if garden, must reset
+                if(location.IsGarden())
+                {
+                    GardenLocation gl = location as GardenLocation;
+                    if(gl.age != 0)
+                    {
+                        // TODO: can not remove garden with seeds
+                        return;
+                    }
+                }
+
+                // Game Data
+                gameData.removeFurniture(location.locationId);
+                gameData.AddItem(location.itemId, 1);
+
+                // Destroy Game Object
+                Destroy(hoveredFurniture.gameObject);
+                hoveredFurniture = null;
+            }
         }
     }
 
@@ -134,7 +161,7 @@ public class ArrangingPanel : MonoBehaviour
     {
         GameObject shadowResource = rm.GetPrefab(itemId.ToString());
         shadow = Instantiate<GameObject>(shadowResource, Vector3.zero, Quaternion.identity);
-        shadowItemId = itemId;
+        shadow.GetComponent<FurnitureController>().SetLocation(gameData.CreateFurnitureLocation(itemId));
         SetArrangeMode(true);
     }
 
@@ -167,7 +194,6 @@ public class ArrangingPanel : MonoBehaviour
 
             // make shadow null
             shadow = null;
-            shadowItemId = -1;
 
             // unlock GetKey
             uiManager.LockGetKey(false);
@@ -198,9 +224,8 @@ public class ArrangingPanel : MonoBehaviour
     private void Arrange(Vector3 shadowPos)
     {
         FurnitureController controller = shadow.GetComponent<FurnitureController>();
-        int direction = controller.GetDirection();
-
-        FurnitureLocation location = null;
+        FurnitureLocation location = controller.GetLocation();
+        int direction = location.Direction;
 
         // modify Game Data
         if (isRearrangeMode)
@@ -213,8 +238,8 @@ public class ArrangingPanel : MonoBehaviour
         }
         else
         {
-            gameData.AddItem(shadowItemId, -1);
-            location = gameData.LocateFurniture(shadowPos, shadowItemId, direction);
+            gameData.AddItem(location.itemId, -1);
+            location = gameData.LocateFurniture(shadowPos, location);
             // TODO: No More Furniture Alarm
             if (location == null) return;
         }

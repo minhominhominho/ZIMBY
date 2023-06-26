@@ -29,8 +29,12 @@ public class CharacterController : MonoBehaviour
     {
         if(uiManager.IsPanelOpen())
         {
-            // nothing
             animator.Play("Idle");
+            if(currentCheckButton != null)
+            {
+                Destroy(currentCheckButton);
+                currentCheckButton = null;
+            }
         } else
         {
             if (Input.GetKeyDown(KeyCode.P))

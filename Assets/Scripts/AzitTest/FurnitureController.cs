@@ -52,6 +52,7 @@ public class FurnitureController : MonoBehaviour
 
     public int GetDirection()
     {
+        Debug.Log("GETDIRECTION");
         return location.Direction;
     }
 

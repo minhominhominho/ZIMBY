@@ -117,8 +117,8 @@ public class GameData
         learnedRecipes[6008] = true;
 
         // azit interior
-        LocateFurniture(new(10f, 19f), 1002, 0);
-        LocateFurniture(new(10f, 15.5f), 1003, 1);
+        LocateFurniture(new(10f, 19f), CreateFurnitureLocation(1002));
+        LocateFurniture(new(10f, 15.5f), CreateFurnitureLocation(1003));
     }
 
     public void AddItem(int what, int count)
@@ -145,7 +145,7 @@ public class GameData
         return result;
     }
 
-    public FurnitureLocation LocateFurniture(Vector2 pos, int itemId, int direction)
+    public FurnitureLocation CreateFurnitureLocation(int itemId)
     {
         int locationId = GetAvailableFurnitureLocationId();
 
@@ -155,13 +155,18 @@ public class GameData
         FurnitureLocation location;
         if (IsGarden(itemId))
         {
-            location = new GardenLocation(locationId, itemId, direction);
+            location = new GardenLocation(locationId, itemId, 0);
             gardenList.Add(location as GardenLocation);
         }
-        else location = new(locationId, itemId, direction);
+        else location = new(locationId, itemId, 0);
 
+        return location;
+    }
+
+    public FurnitureLocation LocateFurniture(Vector2 pos, FurnitureLocation location)
+    {
         interior[Mathf.RoundToInt(pos.x * 2), Mathf.RoundToInt(pos.y * 2)] = location;
-        furnitureList[locationId] = location;
+        furnitureList[location.locationId] = location;
         return location;
     }
 
