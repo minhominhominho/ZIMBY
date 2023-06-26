@@ -16,6 +16,8 @@ public static class MapValues
     public static readonly int MAP_BUILDINGSIZE = 10;
     public static readonly int MINBUILDINGGAP = 1;
     public static readonly int MAP_BUILDINGFREQUENCY = 40;
+    public static readonly int[] dx = new int[] { 0, 0, 1, -1 };
+    public static readonly int[] dy = new int[] { 1, -1, 0, 0 };
 }
 
 // ����
