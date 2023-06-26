@@ -6,9 +6,15 @@ public class Furniture : Item
     private int x;
     private int y;
     private ColliderSize colliderSize;
-
-    public Furniture(string name, string description, int x, int y, ColliderSize colliderSize) : base(name, description)
+    private float satRate;
+    public float SatRate
     {
+        get { return satRate; }
+    }
+
+    public Furniture(string name, string description, float satRate, int x, int y, ColliderSize colliderSize) : base(name, description)
+    {
+        this.satRate = satRate;
         this.x = x;
         this.y = y;
         this.colliderSize = colliderSize;

@@ -18,15 +18,28 @@ public class StoragePanel : MonoBehaviour
 
     private void OnEnable()
     {
+        LoadItems();
+    }
+
+
+    private void OnDisable()
+    {
+        DestroyItems();
+    }
+
+    private void LoadItems()
+    {
         int[] inventory = gameData.GetInventory();
 
-        for(int i=0; i<inventory.Length; i++)
+        for (int i = 0; i < inventory.Length; i++)
         {
             int itemId = i;
             if (inventory[i] > 0)
             {
                 GameObject itemObject = Instantiate<GameObject>(itemFrame, Vector3.zero, Quaternion.identity, content.transform);
                 itemObject.GetComponent<ItemFrame>().SetItem(this, i, inventory[i]);
+                itemObject.GetComponent<Button>().onClick.AddListener(() => OnClickItem(itemId));
+
                 EventTrigger eventTrigger = itemObject.GetComponent<EventTrigger>();
 
                 EventTrigger.Entry pointerEnterEntry = new();
@@ -44,8 +57,7 @@ public class StoragePanel : MonoBehaviour
         }
     }
 
-
-    private void OnDisable()
+    private void DestroyItems()
     {
         foreach (GameObject itemObject in itemObjects)
         {
@@ -67,5 +79,17 @@ public class StoragePanel : MonoBehaviour
     public void OnMouseExitItem()
     {
         itemInfo.SetActive(false);
+    }
+
+    private void OnClickItem(int itemId)
+    {
+        // FOOD
+        if(itemId >= 3000 && itemId < 4000)
+        {
+            gameData.Eat(itemId);
+
+            DestroyItems();
+            LoadItems();
+        }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class UIManager : MonoBehaviour
 {
@@ -12,11 +13,15 @@ public class UIManager : MonoBehaviour
     public GameObject cookPanel;
     public GameObject gardenPanel;
     public GameObject resetGardenPanel;
+    public GameObject statusPanel;
+
+    private TMP_Text satisfactionText;
 
     // 유저와 상호작용하는 Panel이 열려있는 지 여부 (Storage, Counter, ...)
     private bool isPanelOpen = false;
     private GameObject openedPanel = null;
     private bool lockGetKey = false;
+    private GameData gameData = GameData.GetInstance();
 
     public bool IsPanelOpen() { return isPanelOpen; }
 
@@ -69,6 +74,11 @@ public class UIManager : MonoBehaviour
         this.lockGetKey = lockGetKey;
     }
 
+    private void Start()
+    {
+        satisfactionText = statusPanel.transform.GetChild(0).GetComponent<TMP_Text>();
+    }
+
     private void Update()
     {
         if(isPanelOpen && !lockGetKey)
@@ -79,5 +89,10 @@ public class UIManager : MonoBehaviour
                 return;
             }
         }
+
+        // Satisfaction
+        satisfactionText.text = "SAT: " + Mathf.RoundToInt(gameData.Satisfaction).ToString();
+
+
     }
 }

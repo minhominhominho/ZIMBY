@@ -22,7 +22,14 @@ public class GameData
 
     // InGame Data
     private long day = 0;
-    private float satisfaction = 0f;
+    // TODO: 100 is temp
+    private float satisfaction = 100f;    // Food adds a fixed number to satisfaction
+    private float satRateByFurniture = 0f;  // Furnitures increase satisfaction by a certain percentage
+
+    public float Satisfaction
+    {
+        get { return satisfaction * (1f + satRateByFurniture); }
+    }
     private int[] inventory = new int[10000];
     private bool[] learnedRecipes = new bool[10000];
 
@@ -67,20 +74,20 @@ public class GameData
 
     private void InitItem()
     {
-        items[1000] = new Furniture("Wood Chair", "Wood Chair", 1, 1, new(.9f, .9f, 0f, -.5f, .9f, .9f, 0f, -.5f));
+        items[1000] = new Furniture("Wood Chair", "Wood Chair", .03f, 1, 1, new(.9f, .9f, 0f, -.5f, .9f, .9f, 0f, -.5f));
         recipes[1000] = new(6001, 5, 6000, 3);
-        items[1001] = new Furniture("Wood Table", "Wood Table", 3, 2, new(2.9f, .9f, 0f, -.5f, 1.9f, 1.9f, 0f, -.5f));
+        items[1001] = new Furniture("Wood Table", "Wood Table", .05f, 3, 2, new(2.9f, .9f, 0f, -.5f, 1.9f, 1.9f, 0f, -.5f));
         recipes[1001] = new(6000, 5, 6001, 3);
-        items[1002] = new Furniture("Crafting Table 1", "", 3, 2, new(2.9f, .9f, 0f, -.5f, 1.9f, 1.9f, 0f, -.5f));
+        items[1002] = new Furniture("Crafting Table 1", "", 0, 3, 2, new(2.9f, .9f, 0f, -.5f, 1.9f, 1.9f, 0f, -.5f));
         recipes[1002] = new(6000, 5, 6001, 5);
-        items[1003] = new Furniture("Storage 1", "", 2, 2, new(1.9f, .9f, 0f, -.5f, .9f, .9f, 0f, -.5f));
+        items[1003] = new Furniture("Storage 1", "", 0, 2, 2, new(1.9f, .9f, 0f, -.5f, .9f, .9f, 0f, -.5f));
         recipes[1003] = new(6000, 3, 6001, 3);
-        items[1004] = new Furniture("Stove 1", "", 2, 3, new(1.8f, 1.8f, 0f, -.5f, 1.8f, 1.8f, 0f, -.5f));
+        items[1004] = new Furniture("Stove 1", "", 0, 2, 3, new(1.8f, 1.8f, 0f, -.5f, 1.8f, 1.8f, 0f, -.5f));
         recipes[1004] = new(6007, 3, 6008, 3, 6009, 1);
-        items[1005] = new Furniture("Garden 1", "Let's Nongsa", 3, 3, new(2.8f, 2.8f, 0f, 0f, 2.8f, 2.8f, 0f, 0f));
+        items[1005] = new Furniture("Garden 1", "Let's Nongsa", 0, 3, 3, new(2.8f, 2.8f, 0f, 0f, 2.8f, 2.8f, 0f, 0f));
         recipes[1005] = new(6008, 3, 6000, 5);
 
-        items[3000] = new("French Fries", "Delicious");
+        items[3000] = new Food("French Fries", "Delicious", 20);
         recipes[3000] = new(5000, 3);
 
         items[4000] = new("Potato Seed", "");
@@ -100,6 +107,7 @@ public class GameData
         inventory[1000]++;
         inventory[1004]++;
         inventory[1005]++;
+        inventory[3000] += 20;
         inventory[4000]++;
         inventory[6000] += 20;
         inventory[6001] += 20;
@@ -165,6 +173,9 @@ public class GameData
 
     public FurnitureLocation LocateFurniture(Vector2 pos, FurnitureLocation location)
     {
+        // Satisfaction
+        satRateByFurniture += (items[location.itemId] as Furniture).SatRate;
+
         interior[Mathf.RoundToInt(pos.x * 2), Mathf.RoundToInt(pos.y * 2)] = location;
         furnitureList[location.locationId] = location;
         return location;
@@ -236,5 +247,12 @@ public class GameData
     {
         // TODO: what is garden code?
         return itemId == 1005;
+    }
+
+    public void Eat(int itemId)
+    {
+        Food food = items[itemId] as Food;
+        AddItem(itemId, -1);
+        satisfaction += food.Satisfaction;
     }
 }
