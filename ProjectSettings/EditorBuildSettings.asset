@@ -9,6 +9,6 @@ EditorBuildSettings:
     path: Assets/Scenes/Azit.unity
     guid: e267b6a01f3b54438bf37a865784d2e6
   - enabled: 1
-    path: Assets/Scenes/Dev Map.unity
+    path: Assets/Scenes/Tmp Map.unity
     guid: 6c2298064032148e1a328046e7ae2e65
   m_configObjects: {}
