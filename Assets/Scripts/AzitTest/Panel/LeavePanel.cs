@@ -7,6 +7,6 @@ public class LeavePanel : MonoBehaviour
 {
     public void OnClickLeaveButton()
     {
-        SceneManager.LoadScene("Tmp Map");
+        SceneManager.LoadScene("Dev Map");
     }
 }

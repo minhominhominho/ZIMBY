@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
 public class GameData
 {
@@ -162,34 +161,6 @@ public class GameData
 
         interior[Mathf.RoundToInt(pos.x * 2), Mathf.RoundToInt(pos.y * 2)] = location;
         furnitureList[locationId] = location;
-        return location;
-    }
-
-    public FurnitureLocation RelocateFurniture(int locationId, Vector2 newPos)
-    {
-        FurnitureLocation location = null;
-
-        bool isFound = false;
-        for(int i=0; i<interior.GetLength(0); i++)
-        {
-            for(int j=0; j<interior.GetLength(1); j++)
-            {
-                if (interior[i, j] != null && interior[i, j].locationId == locationId)
-                {
-                    location = interior[i, j];
-                    isFound = true;
-                    interior[i, j] = null;
-                    break;
-                }
-            }
-
-            if (isFound) break;
-        }
-
-        Debug.Assert(isFound, "Relocate Furniture But Not Found");
-
-        interior[Mathf.RoundToInt(newPos.x * 2), Mathf.RoundToInt(newPos.y * 2)] = location;
-
         return location;
     }
 

@@ -1049,7 +1049,7 @@ GameObject:
   - component: {fileID: 1248481050}
   - component: {fileID: 1248481049}
   m_Layer: 0
-  m_Name: TmpMapManager
+  m_Name: DevMapManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
