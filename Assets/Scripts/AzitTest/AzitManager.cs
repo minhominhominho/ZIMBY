@@ -26,8 +26,9 @@ public class AzitManager : MonoBehaviour
                 new Vector2((float)y / 2, (float)x / 2),
                 Quaternion.identity);
             obj.name = location.itemId.ToString();
-            obj.GetComponent<FurnitureController>().SetDirection(location.direction);
             obj.GetComponent<FurnitureController>().SetLocation(location);
+            obj.GetComponent<FurnitureController>().SetDirection(location.Direction);
+            
 
             if(location.IsGarden())
             {

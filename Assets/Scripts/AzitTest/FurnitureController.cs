@@ -5,8 +5,6 @@ using UnityEngine;
 public class FurnitureController : MonoBehaviour
 {
     private Furniture furniture;
-    // DLUR 
-    private int direction = 0;
     private FurnitureLocation location;
     private SpriteRenderer sr;
     private BoxCollider2D col;
@@ -34,13 +32,13 @@ public class FurnitureController : MonoBehaviour
 
     public void Rotate()
     {
-        SetDirection((direction + 1) % 4);
+        SetDirection((location.Direction + 1) % 4);
     }
 
     public void SetDirection(int direction)
     {
         Debug.Assert((direction >= 0 && direction < 4), "invalid funitrue direction");
-        this.direction = direction;
+        this.location.Direction = direction;
 
         // sprite
         sr.sprite = sheet[direction];
@@ -54,7 +52,7 @@ public class FurnitureController : MonoBehaviour
 
     public int GetDirection()
     {
-        return direction;
+        return location.Direction;
     }
 
     public void OnHoverEnter()
