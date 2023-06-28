@@ -2,21 +2,21 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Pool;
-using static UnityEditor.Searcher.SearcherWindow.Alignment;
 
 [Flags]
 public enum MapFlag : byte
 {
     None = 0,
-    Center = 1,
-    BuildingPlace = 2,
-    BuildingPlaceEdge = 4,
-    Building = 8,
-    Road = 16,
+    BuildingPlace = 1,
+    BuildingPoint = 2,
+    Building = 4,
+    WideRoad = 8,
+    MiddleRoad = 16,
 }
 
 public enum BuildingType : byte
@@ -79,16 +79,25 @@ public class MapGenerator : MonoBehaviour
     [Range(0, 1)] public float buildingOffset;      // 건물이 그리드에서 벗어나는 정도
     [Range(0, 100)] public int buildingFrequency;   // 건물 생성 빈도 (%)
 
-    Stack<Vector2Int> doorsStack;
 
+    public int wideRoadWidth;                       // 넓은 도로 폭
+    public int middleRoadWidth;                     // 중간 도로 폭
+    public int narrowRoadWidth;                     // 최소 도로 폭
+    [Range(1, 5)] public int maxWideRoadFrequency;  // 넓은 도로 최대 빈도
+    [Range(1, 5)] public int maxMiddleRoadFrequency;// 중간 도로 최대 빈도
+
+    private Stack<Vector2Int> roads;
+    private Stack<MapValues.Dir> roadsDir;
 
     [Header("Objects & Sprites")]
     public GameObject land;
     public BuildingComponent[] buildingComponents = new BuildingComponent[(int)BuildingType.BuildingCount];
 
     public GameObject roadObject;
-    public GameObject dummyParent;
-    public GameObject dummy;
+    public GameObject roadParent;
+    public GameObject buildingParent;
+    public GameObject buildingPlaceParent;
+    public GameObject buildingPlaceObject;
     // private List<GameObject> roads = new List<GameObject>();
     // private Dictionary<int, MapItem> mapItems = new Dictionary<int, MapItem>();
 
@@ -127,16 +136,152 @@ public class MapGenerator : MonoBehaviour
         if (buildingOffset < 0) buildingOffset = 0;
         if (buildingFrequency <= 0) buildingFrequency = MapValues.MAP_BUILDINGFREQUENCY;
 
-        doorsStack = new Stack<Vector2Int>();
+        // maxWideRoadFrequency
+        // wideRoadWidth;
+        // middleRoadWidth
+        // narrowRoadWidth
     }
 
     void GenerateMap()
     {
+        PlaceWideRoads();
+        PlaceMiddleRoads();
         ReserveBuildings();
         PlaceBuildings();
         DrawBuildings();
-        PlaceRoads();
         DrawRoads();
+    }
+
+
+    // 큰 길 표시
+    void PlaceWideRoads()
+    {
+        int offset = extendedBuildingSize;
+        int wideRoadsSlotNum = (extendedMapSize - 2 * extendedBuildingSize) / wideRoadWidth;
+
+        for (int ver = 0; ver < 2; ver++)
+        {
+            int roadsNum = pseudoRandom.Next(1, maxWideRoadFrequency + 1);
+            List<int> possibleWideRoads = new List<int>(wideRoadsSlotNum);
+            for (int i = 0; i < wideRoadsSlotNum; i++) possibleWideRoads.Add(i);
+
+            for (int i = 0; i < roadsNum; i++)
+            {
+                if (possibleWideRoads.Count == 0) break;
+                int wideRoadIdx = pseudoRandom.Next(0, possibleWideRoads.Count);
+
+                for (int j = offset + possibleWideRoads[wideRoadIdx] * wideRoadWidth; j < offset + (possibleWideRoads[wideRoadIdx] + 1) * wideRoadWidth; j++)
+                {
+                    for (int k = 0; k < extendedMapSize; k++)
+                    {
+                        if (ver == 0) generatedMap[j, k] |= MapFlag.WideRoad;
+                        else generatedMap[k, j] |= MapFlag.WideRoad;
+                    }
+                }
+
+                int pickedValue = possibleWideRoads[wideRoadIdx];
+
+                for (int j = possibleWideRoads.Count - 1; j >= 0; j--)
+                {
+                    if (pickedValue - (extendedBuildingSize + wideRoadWidth - 1) / wideRoadWidth <= possibleWideRoads[j] && possibleWideRoads[j] <= pickedValue + (extendedBuildingSize + wideRoadWidth - 1) / wideRoadWidth)
+                        possibleWideRoads.RemoveAt(j);
+                }
+            }
+        }
+    }
+
+    // 중간 길 표시
+    void PlaceMiddleRoads()
+    {
+        List<int> possibleVer = new List<int>();
+        List<int> possibleHor = new List<int>();
+
+        // 가능한 길 리스트 구성
+        for (int i = 0; i < extendedMapSize; i++)
+        {
+            bool isVerPossible = true;
+            bool isHorrPossible = true;
+
+            for (int j = i - extendedBuildingSize; j < i + middleRoadWidth + extendedBuildingSize; j++)
+            {
+                if (j < 0 || j >= extendedMapSize || generatedMap[j, 0] == MapFlag.WideRoad)
+                {
+                    isVerPossible = false;
+                    if (!isVerPossible && !isHorrPossible) break;
+                }
+
+                if (j < 0 || j >= extendedMapSize || generatedMap[0, j] == MapFlag.WideRoad)
+                {
+                    isHorrPossible = false;
+                    if (!isVerPossible && !isHorrPossible) break;
+                }
+            }
+
+            if (isVerPossible) possibleVer.Add(i);
+            if (isHorrPossible) possibleHor.Add(i);
+        }
+
+        // 가능한 길 랜덤으로 표시
+        for (int dir = 0; dir < 4; dir++)
+        {
+            List<int> copiedPossible;
+            if (dir == (int)MapValues.Dir.Up || dir == (int)MapValues.Dir.Down) copiedPossible = possibleVer;
+            else copiedPossible = possibleHor;
+
+
+            int roadsNum = pseudoRandom.Next(0, maxMiddleRoadFrequency + 1);
+            for (int i = 0; i < roadsNum; i++)
+            {
+                if (copiedPossible.Count == 0) break;
+                int middleRoadIdx = pseudoRandom.Next(0, copiedPossible.Count);
+
+                // 길 표시
+                for (int j = copiedPossible[middleRoadIdx]; j < copiedPossible[middleRoadIdx] + middleRoadWidth; j++)
+                {
+                    if (dir == (int)MapValues.Dir.Up || dir == (int)MapValues.Dir.Right)
+                    {
+                        for (int k = 0; k < extendedMapSize; k++)
+                        {
+                            if (dir == (int)MapValues.Dir.Up)
+                            {
+                                if (generatedMap[j, k] > MapFlag.None) break;
+                                generatedMap[j, k] |= MapFlag.MiddleRoad;
+                            }
+                            if (dir == (int)MapValues.Dir.Right)
+                            {
+                                if (generatedMap[k, j] > MapFlag.None) break;
+                                generatedMap[k, j] |= MapFlag.MiddleRoad;
+                            }
+                        }
+                    }
+                    else if (dir == (int)MapValues.Dir.Down || dir == (int)MapValues.Dir.Left)
+                    {
+                        for (int k = extendedMapSize - 1; k >= 0; k--)
+                        {
+                            if (dir == (int)MapValues.Dir.Down)
+                            {
+                                if (generatedMap[j, k] > MapFlag.None) break;
+                                generatedMap[j, k] |= MapFlag.MiddleRoad;
+                            }
+                            if (dir == (int)MapValues.Dir.Left)
+                            {
+                                if (generatedMap[k, j] > MapFlag.None) break;
+                                generatedMap[k, j] |= MapFlag.MiddleRoad;
+                            }
+                        }
+                    }
+                }
+
+                int pickedValue = copiedPossible[middleRoadIdx];
+
+                // 표시한 인덱스, 양 옆 집 크기만큼 가능한 길에서 제외
+                for (int j = copiedPossible.Count - 1; j >= 0; j--)
+                {
+                    if (pickedValue - extendedBuildingSize - middleRoadWidth < copiedPossible[j] && copiedPossible[j] < pickedValue + middleRoadWidth + extendedBuildingSize)
+                        copiedPossible.RemoveAt(j);
+                }
+            }
+        }
     }
 
     // 랜덤 건물 공간 확보
@@ -151,7 +296,7 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    // 확보한 건물 공간에 오프셋과 함께 건물 배치 시도, 건물 및 건물 중앙 표시
+    // 확보한 건물 공간에 오프셋과 함께 건물 배치 시도, 건물 전체와 건물 기준점 표시
     void PlaceBuildings()
     {
         for (int x = 0; x < buildingMapSize; x++)
@@ -183,7 +328,7 @@ public class MapGenerator : MonoBehaviour
                         if (isOverllaped) break;
                     }
 
-                    // 테스트 통과했으면 건물 표시
+                    // 테스트 통과했으면 건물 전체 표시
                     if (!isOverllaped)
                     {
                         for (int i = 0; i < extendedBuildingSize; i++)
@@ -193,14 +338,12 @@ public class MapGenerator : MonoBehaviour
                                 int px = x * extendedBuildingSize + xOffset + i;
                                 int py = y * extendedBuildingSize + yOffset + j;
 
-
                                 generatedMap[px, py] = MapFlag.BuildingPlace;
-                                if (i == 0 || i == extendedBuildingSize - 1 || j == 0 || j == extendedBuildingSize - 1) generatedMap[px, py] = MapFlag.BuildingPlaceEdge;
                             }
                         }
 
-                        // 건물 중앙 표시
-                        generatedMap[x * extendedBuildingSize + extendedBuildingSize / 2 + xOffset, y * extendedBuildingSize + extendedBuildingSize / 2 + yOffset] |= MapFlag.Center;
+                        // 건물 기준점(BuildingPoint) 표시
+                        generatedMap[x * extendedBuildingSize + xOffset, y * extendedBuildingSize + yOffset] |= MapFlag.BuildingPoint;
                     }
                 }
             }
@@ -211,16 +354,17 @@ public class MapGenerator : MonoBehaviour
     public void DrawBuildings()
     {
         ///////////////////////////////////////////////
-        ///To be deleted
-        ////////////////////////////
+        /// To be deleted
         for (int i = 0; i < extendedMapSize; i++)
         {
             for (int j = 0; j < extendedMapSize; j++)
             {
                 if ((generatedMap[i, j] & MapFlag.BuildingPlace) == MapFlag.BuildingPlace)
-                    Instantiate(dummy, new Vector3(i, j, 0), Quaternion.identity, dummyParent.transform);
+                    Instantiate(buildingPlaceObject, new Vector3(i, j, 0), Quaternion.identity, buildingPlaceParent.transform);
             }
         }
+        //////////////////////////////////////////////////////
+
 
         if (generatedMap != null)
         {
@@ -229,8 +373,8 @@ public class MapGenerator : MonoBehaviour
             {
                 for (int y = 0; y < extendedMapSize; y++)
                 {
-                    // Gap은 뻬고 그려야됨
-                    if ((generatedMap[x, y] & MapFlag.Center) == MapFlag.Center)
+                    // Gap은 빼고 그려야됨
+                    if ((generatedMap[x, y] & MapFlag.BuildingPoint) == MapFlag.BuildingPoint)
                         DrawRandomBuilding(x, y);
                 }
             }
@@ -240,11 +384,11 @@ public class MapGenerator : MonoBehaviour
     // 문 위치 랜덤으로 정해서 건물 그리기 & 실제 건물 표시
     public void DrawRandomBuilding(int x, int y)
     {
-        // 건물 크기 설정
-        int minX = x - buildingSize / 2;
-        int maxX = x + buildingSize / 2 - 1;
-        int minY = y - buildingSize / 2;
-        int maxY = y + buildingSize / 2 - 1;
+        // 건물 범위 설정
+        int minX = x + minBuildingGap;
+        int maxX = x + minBuildingGap + buildingSize - 1;
+        int minY = y + minBuildingGap;
+        int maxY = y + minBuildingGap + buildingSize - 1;
 
         // Door 위치 랜덤으로 정하기
         int doorUDRL = pseudoRandom.Next(0, 4);
@@ -270,17 +414,15 @@ public class MapGenerator : MonoBehaviour
             doorY = pseudoRandom.Next(minY + 1, maxY);
         }
 
-        doorsStack.Push(new Vector2Int(doorX, doorY));
-
         // 건물 그리기
         int randomBuilding = pseudoRandom.Next(0, (int)BuildingType.BuildingCount);
         randomBuilding = 0; // To Be Changed
         BuildingComponent bt = buildingComponents[randomBuilding];
         GameObject g;
 
-        for (int i = minX; i < maxX + 1; i++)
+        for (int i = minX; i <= maxX; i++)
         {
-            for (int j = minY; j < maxY + 1; j++)
+            for (int j = minY; j <= maxY; j++)
             {
                 // Gap을 제외한 실제 건물 표시
                 generatedMap[i, j] |= MapFlag.Building;
@@ -296,77 +438,7 @@ public class MapGenerator : MonoBehaviour
                 else if (i == minX) g = bt.L;
                 else g = bt.In;
 
-                Instantiate(g, new Vector3(i, j, 0), Quaternion.identity, this.gameObject.transform);
-
-            }
-        }
-    }
-
-    // 문 위치에서 길 그리기 시도
-    public void PlaceRoads()
-    {
-        Queue<Vector2Int> posQ = new Queue<Vector2Int>();
-        Queue<bool> verQ = new Queue<bool>();
-
-        while (doorsStack.Count > 0)
-        {
-            Vector2Int door = doorsStack.Pop();
-
-            for (int i = 0; i < 4; i++)
-            {
-                // 문쪽 방향 찾기
-                int roadX = door.x + MapValues.dx[i];
-                int roadY = door.y + MapValues.dy[i];
-                if (roadX < 0 || roadY < 0 || roadX >= extendedMapSize || roadY >= extendedMapSize) continue;
-                if ((generatedMap[roadX, roadY] & MapFlag.Building) == MapFlag.Building) continue;
-
-                // 문쪽으로 길 표시
-                for (int j = 0; j < minBuildingGap; j++)
-                {
-                    generatedMap[roadX, roadY] = MapFlag.Road;
-                    roadX += MapValues.dx[i];
-                    roadY += MapValues.dy[i];
-                    if (roadX < 0 || roadY < 0 || roadX >= extendedMapSize || roadY >= extendedMapSize) return;
-                }
-
-                generatedMap[roadX, roadY] = MapFlag.Road;
-                posQ.Enqueue(new Vector2Int(roadX, roadY));
-                verQ.Enqueue(MapValues.dy[i] == 0 ? true : false);
-            }
-        }
-
-        // 양쪽으로 길 표시
-        while (posQ.Count > 0)
-        {
-            Vector2Int point = posQ.Dequeue();
-            int x = point.x;
-            int y = point.y;
-            bool isVertical = verQ.Dequeue();
-
-            for (int i = 0; i < 4; i++)
-            {
-                if (isVertical && MapValues.dx[i] != 0) continue;
-                if (!isVertical && MapValues.dy[i] != 0) continue;
-
-                int px = x;
-                int py = y;
-                while (true)
-                {
-                    // 지정 방향으로 길 그리기 시도
-                    px += MapValues.dx[i];
-                    py += MapValues.dy[i];
-                    if (px < 0 || py < 0 || px >= extendedMapSize || py >= extendedMapSize) break;
-                    if ((generatedMap[px, py] & MapFlag.Road) == MapFlag.Road) break;
-
-                    if ((generatedMap[px, py] & MapFlag.BuildingPlace) == MapFlag.BuildingPlace)
-                    {
-                        posQ.Enqueue(new Vector2Int(px - MapValues.dx[i], py - MapValues.dy[i]));
-                        verQ.Enqueue(!isVertical);
-                        break;
-                    }
-
-                    generatedMap[px, py] = MapFlag.Road;
-                }
+                Instantiate(g, new Vector3(i, j, 0), Quaternion.identity, buildingParent.transform);
             }
         }
     }
@@ -377,7 +449,7 @@ public class MapGenerator : MonoBehaviour
         {
             for (int j = 0; j < extendedMapSize; j++)
             {
-                if (generatedMap[i, j] == MapFlag.Road) Instantiate(roadObject, new Vector3(i, j, 0), Quaternion.identity, this.gameObject.transform);
+                if (generatedMap[i, j] >= MapFlag.WideRoad) Instantiate(roadObject, new Vector3(i, j, 0), Quaternion.identity, roadParent.transform);
             }
         }
     }
