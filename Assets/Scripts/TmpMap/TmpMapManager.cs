@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 
-public class DevMapManager : MonoBehaviour
+public class TmpMapManager : MonoBehaviour
 {
     public GameObject itemPrefab;
     public GameObject itemPanelContent;
