@@ -4,19 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 [Flags]
 public enum MapFlag : byte
 {
     None = 0,
-    BuildingPlace = 1,
-    BuildingPoint = 2,
-    Building = 4,
-    WideRoad = 8,
-    MiddleRoad = 16,
+    BuildingPoint = 1,
+    Building = 2,
+    WideRoad = 4,
+    MiddleRoad = 8,
+    NarrowRoad = 16,
 }
 
 public enum BuildingType : byte
@@ -62,32 +65,29 @@ public class MapGenerator : MonoBehaviour
     public string seed;
     private System.Random pseudoRandom;
 
+    [Header("Map")]
+    public int mapSize;
+    private MapFlag[,] generatedMap;            // All roads and buildings are drawn from left down corner.
+    private List<int> possilbeBuildingPoints;
 
-    [Header("Map & Building")]
-    public int mapSize;                             // 맵 크기 (mapSize * mapSize)
-    public int minBuildingGap;                      // 건물 간 최소 간격
-    public int buildingSize;                        // 건물 크기
+    [Header("Building")]
+    public int buildingSize;
+    public int minBuildingNum;
+    public int maxBuildingNum;
+    public int minBuildingGap;
 
-    private int extendedMapSize;                    // 건물 간 최소 간격에 따라 확장된 맵 크기
-    private int extendedBuildingSize;               // 건물 간 최소 간격에 대한 여유분을 가지는 가상 건물 크기
+    private int buildingAreaSize;               // = buildingSize + 2 * minBuildingGap
+    [Header("Road")]
+    public int wideRoadWidth;
+    public int middleRoadWidth;
+    public int narrowRoadWidth;
 
-    private int[,] buildingMap;                     // 건물만 배치하는 맵
-    private int buildingMapSize;                    // = mapSize / buildingSize
-
-    private MapFlag[,] generatedMap;                // 실제 맵
-
-    [Range(0, 1)] public float buildingOffset;      // 건물이 그리드에서 벗어나는 정도
-    [Range(0, 100)] public int buildingFrequency;   // 건물 생성 빈도 (%)
-
-
-    public int wideRoadWidth;                       // 넓은 도로 폭
-    public int middleRoadWidth;                     // 중간 도로 폭
-    public int narrowRoadWidth;                     // 최소 도로 폭
-    [Range(1, 5)] public int maxWideRoadFrequency;  // 넓은 도로 최대 빈도
-    [Range(1, 5)] public int maxMiddleRoadFrequency;// 중간 도로 최대 빈도
-
-    private Stack<Vector2Int> roads;
-    private Stack<MapValues.Dir> roadsDir;
+    public int minWideRoadsNumPerDir;
+    public int maxWideRoadsNumPerDir;
+    public int minMiddleRoadsNumPerDir;
+    public int maxMiddleRoadsNumPerDir;
+    public int minNarrowRoadsTotalNum;
+    public int maxNarrowRoadsTotalNum;
 
     [Header("Objects & Sprites")]
     public GameObject land;
@@ -96,18 +96,12 @@ public class MapGenerator : MonoBehaviour
     public GameObject roadObject;
     public GameObject roadParent;
     public GameObject buildingParent;
-    public GameObject buildingPlaceParent;
-    public GameObject buildingPlaceObject;
-    // private List<GameObject> roads = new List<GameObject>();
-    // private Dictionary<int, MapItem> mapItems = new Dictionary<int, MapItem>();
-
 
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.H))
         {
-            Debug.Log("Map");
             Init();
             GenerateMap();
         }
@@ -122,275 +116,450 @@ public class MapGenerator : MonoBehaviour
         if (buildingSize <= 0) buildingSize = MapValues.MAP_BUILDINGSIZE;
         if (minBuildingGap < 0) minBuildingGap = MapValues.MINBUILDINGGAP;
 
-        extendedBuildingSize = buildingSize + 2 * minBuildingGap;
-        buildingMapSize = mapSize / buildingSize;
-        extendedMapSize = buildingMapSize * extendedBuildingSize;
+        buildingAreaSize = buildingSize + 2 * minBuildingGap;
 
-        land.transform.localScale = new Vector3(extendedMapSize, extendedMapSize, extendedMapSize);
-        land.transform.position = new Vector3(extendedMapSize / 2 - 0.5f, extendedMapSize / 2 - 0.5f, 0);
+        land.transform.localScale = new Vector3(mapSize, mapSize, mapSize);
+        land.transform.position = new Vector3(mapSize / 2 - 0.5f, mapSize / 2 - 0.5f, 0);
+
+        generatedMap = new MapFlag[mapSize, mapSize];
+
+        if (wideRoadWidth <= 0) wideRoadWidth = MapValues.MAP_MIDDLEROADWIDTH;
+        if (middleRoadWidth <= 0) middleRoadWidth = MapValues.MAP_MIDDLEROADWIDTH;
+        if (narrowRoadWidth <= 0) narrowRoadWidth = MapValues.MAP_NARROWROADWIDTH;
 
 
-        buildingMap = new int[buildingMapSize, buildingMapSize];
-        generatedMap = new MapFlag[extendedMapSize, extendedMapSize];
 
-        if (buildingOffset < 0) buildingOffset = 0;
-        if (buildingFrequency <= 0) buildingFrequency = MapValues.MAP_BUILDINGFREQUENCY;
-
-        // maxWideRoadFrequency
-        // wideRoadWidth;
-        // middleRoadWidth
-        // narrowRoadWidth
+        // Building & Roads Min, Max
     }
 
     void GenerateMap()
     {
-        PlaceWideRoads();
-        PlaceMiddleRoads();
-        ReserveBuildings();
-        PlaceBuildings();
+        MarkWideRoads();
+        MarkMiddleRoads();
+        MarkNarrowRoads();
+        MarkBuildings();
         DrawBuildings();
         DrawRoads();
     }
 
 
-    // 큰 길 표시
-    void PlaceWideRoads()
+    #region Mark Roads
+
+    void MarkWideRoads()
     {
-        int offset = extendedBuildingSize;
-        int wideRoadsSlotNum = (extendedMapSize - 2 * extendedBuildingSize) / wideRoadWidth;
+        List<int> possibleWideRoadPoints = new List<int>();
 
-        for (int ver = 0; ver < 2; ver++)
+        int minWideRoadGap = 2 * buildingAreaSize;
+
+        for (int i = minWideRoadGap; i <= mapSize - minWideRoadGap - wideRoadWidth; i++) possibleWideRoadPoints.Add(i);
+
+        for (int isHor = 0; isHor <= 1; isHor++)
         {
-            int roadsNum = pseudoRandom.Next(1, maxWideRoadFrequency + 1);
-            List<int> possibleWideRoads = new List<int>(wideRoadsSlotNum);
-            for (int i = 0; i < wideRoadsSlotNum; i++) possibleWideRoads.Add(i);
+            int roadsNum = pseudoRandom.Next(minWideRoadsNumPerDir, maxWideRoadsNumPerDir + 1);
+            List<int> coopiedPossibleWideRoadPoints = possibleWideRoadPoints.ToList();
 
-            for (int i = 0; i < roadsNum; i++)
+            while (roadsNum-- > 0)
             {
-                if (possibleWideRoads.Count == 0) break;
-                int wideRoadIdx = pseudoRandom.Next(0, possibleWideRoads.Count);
+                if (coopiedPossibleWideRoadPoints.Count == 0) break;
 
-                for (int j = offset + possibleWideRoads[wideRoadIdx] * wideRoadWidth; j < offset + (possibleWideRoads[wideRoadIdx] + 1) * wideRoadWidth; j++)
+                // Mark Wide Road
+                int wideRoadIdx = pseudoRandom.Next(0, coopiedPossibleWideRoadPoints.Count);
+                wideRoadIdx = coopiedPossibleWideRoadPoints.Count - 1;
+                for (int i = 0; i < mapSize; i++)
                 {
-                    for (int k = 0; k < extendedMapSize; k++)
+                    for (int j = 0; j < wideRoadWidth; j++)
                     {
-                        if (ver == 0) generatedMap[j, k] |= MapFlag.WideRoad;
-                        else generatedMap[k, j] |= MapFlag.WideRoad;
+                        if (isHor == 1) generatedMap[i, coopiedPossibleWideRoadPoints[wideRoadIdx] + j] |= MapFlag.WideRoad;
+                        else generatedMap[coopiedPossibleWideRoadPoints[wideRoadIdx] + j, i] |= MapFlag.WideRoad;
                     }
                 }
 
-                int pickedValue = possibleWideRoads[wideRoadIdx];
-
-                for (int j = possibleWideRoads.Count - 1; j >= 0; j--)
+                // Remove impossible points
+                int removedIdxVal = coopiedPossibleWideRoadPoints[wideRoadIdx];
+                for (int i = -minWideRoadGap - wideRoadWidth + 1; i < minWideRoadGap + wideRoadWidth; i++)
                 {
-                    if (pickedValue - (extendedBuildingSize + wideRoadWidth - 1) / wideRoadWidth <= possibleWideRoads[j] && possibleWideRoads[j] <= pickedValue + (extendedBuildingSize + wideRoadWidth - 1) / wideRoadWidth)
-                        possibleWideRoads.RemoveAt(j);
+                    coopiedPossibleWideRoadPoints.Remove(removedIdxVal + i);
                 }
             }
         }
     }
 
-    // 중간 길 표시
-    void PlaceMiddleRoads()
+    void MarkMiddleRoads()
     {
-        List<int> possibleVer = new List<int>();
-        List<int> possibleHor = new List<int>();
+        int minMiddleRoadGap = buildingAreaSize;
 
-        // 가능한 길 리스트 구성
-        for (int i = 0; i < extendedMapSize; i++)
+        for (int isHor = 0; isHor <= 1; isHor++)
         {
-            bool isVerPossible = true;
-            bool isHorrPossible = true;
+            List<int> possibleMiddleRoadPoints = new List<int>();
 
-            for (int j = i - extendedBuildingSize; j < i + middleRoadWidth + extendedBuildingSize; j++)
+            // Fill initial possible list
+            for (int i = minMiddleRoadGap; i <= mapSize - minMiddleRoadGap - middleRoadWidth; i++)
             {
-                if (j < 0 || j >= extendedMapSize || generatedMap[j, 0] == MapFlag.WideRoad)
+                bool isPossible = true;
+
+                for (int j = -minMiddleRoadGap - middleRoadWidth + 1; j < minMiddleRoadGap + middleRoadWidth; j++)
                 {
-                    isVerPossible = false;
-                    if (!isVerPossible && !isHorrPossible) break;
-                }
+                    if (i + j < 0 || i + j >= mapSize) continue;
 
-                if (j < 0 || j >= extendedMapSize || generatedMap[0, j] == MapFlag.WideRoad)
-                {
-                    isHorrPossible = false;
-                    if (!isVerPossible && !isHorrPossible) break;
-                }
-            }
-
-            if (isVerPossible) possibleVer.Add(i);
-            if (isHorrPossible) possibleHor.Add(i);
-        }
-
-        // 가능한 길 랜덤으로 표시
-        for (int dir = 0; dir < 4; dir++)
-        {
-            List<int> copiedPossible;
-            if (dir == (int)MapValues.Dir.Up || dir == (int)MapValues.Dir.Down) copiedPossible = possibleVer;
-            else copiedPossible = possibleHor;
-
-
-            int roadsNum = pseudoRandom.Next(0, maxMiddleRoadFrequency + 1);
-            for (int i = 0; i < roadsNum; i++)
-            {
-                if (copiedPossible.Count == 0) break;
-                int middleRoadIdx = pseudoRandom.Next(0, copiedPossible.Count);
-
-                // 길 표시
-                for (int j = copiedPossible[middleRoadIdx]; j < copiedPossible[middleRoadIdx] + middleRoadWidth; j++)
-                {
-                    if (dir == (int)MapValues.Dir.Up || dir == (int)MapValues.Dir.Right)
+                    if (isHor == 1)
                     {
-                        for (int k = 0; k < extendedMapSize; k++)
+                        if (generatedMap[0, i + j] != MapFlag.None)
                         {
-                            if (dir == (int)MapValues.Dir.Up)
-                            {
-                                if (generatedMap[j, k] > MapFlag.None) break;
-                                generatedMap[j, k] |= MapFlag.MiddleRoad;
-                            }
-                            if (dir == (int)MapValues.Dir.Right)
-                            {
-                                if (generatedMap[k, j] > MapFlag.None) break;
-                                generatedMap[k, j] |= MapFlag.MiddleRoad;
-                            }
+                            isPossible = false;
+                            break;
                         }
                     }
-                    else if (dir == (int)MapValues.Dir.Down || dir == (int)MapValues.Dir.Left)
+                    else
                     {
-                        for (int k = extendedMapSize - 1; k >= 0; k--)
+                        if (generatedMap[i + j, 0] != MapFlag.None)
                         {
-                            if (dir == (int)MapValues.Dir.Down)
-                            {
-                                if (generatedMap[j, k] > MapFlag.None) break;
-                                generatedMap[j, k] |= MapFlag.MiddleRoad;
-                            }
-                            if (dir == (int)MapValues.Dir.Left)
-                            {
-                                if (generatedMap[k, j] > MapFlag.None) break;
-                                generatedMap[k, j] |= MapFlag.MiddleRoad;
-                            }
+                            isPossible = false;
+                            break;
                         }
                     }
                 }
 
-                int pickedValue = copiedPossible[middleRoadIdx];
+                if (isPossible) possibleMiddleRoadPoints.Add(i);
+            }
 
-                // 표시한 인덱스, 양 옆 집 크기만큼 가능한 길에서 제외
-                for (int j = copiedPossible.Count - 1; j >= 0; j--)
+            int roadsNum = pseudoRandom.Next(minMiddleRoadsNumPerDir, maxMiddleRoadsNumPerDir + 1);
+            while (roadsNum-- > 0)
+            {
+                if (possibleMiddleRoadPoints.Count == 0) break;
+
+                // Mark Middle Road
+                int middleRoadIdx = pseudoRandom.Next(0, possibleMiddleRoadPoints.Count);
+
+                bool dir = pseudoRandom.Next(0, 2) == 1 ? true : false;
+
+                for (int i = (dir ? 0 : mapSize - 1); dir ? (i < mapSize) : (i >= 0); i += (dir ? 1 : -1))
                 {
-                    if (pickedValue - extendedBuildingSize - middleRoadWidth < copiedPossible[j] && copiedPossible[j] < pickedValue + middleRoadWidth + extendedBuildingSize)
-                        copiedPossible.RemoveAt(j);
+                    if (isHor == 1 && (generatedMap[i, 0] & MapFlag.WideRoad) == MapFlag.WideRoad) break;
+                    else if (isHor == 0 && (generatedMap[0, i] & MapFlag.WideRoad) == MapFlag.WideRoad) break;
+
+                    for (int j = 0; j < middleRoadWidth; j++)
+                    {
+                        if (isHor == 1) generatedMap[i, possibleMiddleRoadPoints[middleRoadIdx] + j] |= MapFlag.MiddleRoad;
+                        else generatedMap[possibleMiddleRoadPoints[middleRoadIdx] + j, i] |= MapFlag.MiddleRoad;
+                    }
+                }
+
+                // Remove impossible points
+                int removedIdxVal = possibleMiddleRoadPoints[middleRoadIdx];
+                for (int i = -minMiddleRoadGap - middleRoadWidth + 1; i < minMiddleRoadGap + middleRoadWidth; i++)
+                {
+                    possibleMiddleRoadPoints.Remove(removedIdxVal + i);
                 }
             }
         }
     }
 
-    // 랜덤 건물 공간 확보
-    void ReserveBuildings()
+    void MarkNarrowRoads()
     {
-        for (int x = 0; x < buildingMapSize; x++)
-        {
-            for (int y = 0; y < buildingMapSize; y++)
-            {
-                buildingMap[x, y] = (pseudoRandom.Next(0, 100) <= buildingFrequency) ? 1 : 0;
-            }
-        }
-    }
+        List<int> possiblePoints = new List<int>();
 
-    // 확보한 건물 공간에 오프셋과 함께 건물 배치 시도, 건물 전체와 건물 기준점 표시
-    void PlaceBuildings()
-    {
-        for (int x = 0; x < buildingMapSize; x++)
+        // Fill initial possible list
+        for (int i = 0; i < mapSize; i++)
         {
-            for (int y = 0; y < buildingMapSize; y++)
+            for (int j = 0; j < mapSize; j++)
             {
-                if (buildingMap[x, y] == 1)
+                if (generatedMap[i, j] == MapFlag.None)
                 {
-                    int maxOffset = (int)(buildingOffset * buildingSize);
-                    int xOffset = pseudoRandom.Next(-maxOffset, maxOffset + 1);
-                    int yOffset = pseudoRandom.Next(-maxOffset, maxOffset + 1);
-
-                    // 다른 건물과 겹치는지, 맵을 나가는지 테스트
-                    bool isOverllaped = false;
-                    for (int i = 0; i < extendedBuildingSize; i++)
+                    bool chk = true;
+                    for (int p = -buildingAreaSize; p <= buildingAreaSize; p++)
                     {
-                        for (int j = 0; j < extendedBuildingSize; j++)
+                        for (int q = -buildingAreaSize; q <= buildingAreaSize; q++)
                         {
-                            int px = x * extendedBuildingSize + xOffset + i;
-                            int py = y * extendedBuildingSize + yOffset + j;
+                            int px = i + p;
+                            int py = j + q;
 
-                            if (extendedMapSize <= px || 0 > px || extendedMapSize <= py || 0 > py || generatedMap[px, py] > MapFlag.None)
+                            if (px < 0 || py < 0 || px >= mapSize || py >= mapSize || generatedMap[px, py] != MapFlag.None)
                             {
-                                isOverllaped = true;
+                                chk = false;
                                 break;
                             }
                         }
-
-                        if (isOverllaped) break;
+                        if (!chk) break;
                     }
 
-                    // 테스트 통과했으면 건물 전체 표시
-                    if (!isOverllaped)
+                    if (chk) possiblePoints.Add(mapSize * i + j);
+                }
+            }
+        }
+
+
+        while (maxNarrowRoadsTotalNum-- > 0)
+        {
+            if (possiblePoints.Count == 0) break;
+
+            int idx = pseudoRandom.Next(0, possiblePoints.Count);
+            int cx = possiblePoints[idx] / mapSize;
+            int cy = possiblePoints[idx] % mapSize;
+
+            // to be changed : Set probability of intersection branch num
+            List<int> dir = new List<int>();
+            for (int i = 0; i < MapValues.dx.Count(); i++) dir.Add(i);
+
+            int branchNum;
+            int ranNum = pseudoRandom.Next(0, 100);
+            if (ranNum < 50) branchNum = 2;
+            else if (ranNum < 80) branchNum = 3;
+            else branchNum = 4;
+
+            for (int j = 0; j < 4 - branchNum; j++) dir.RemoveAt(pseudoRandom.Next(0, dir.Count));
+
+            bool chkPossible = true;
+
+            // Check Narrow Road
+            for (int i = 0; i < dir.Count; i++)
+            {
+                int px = cx + MapValues.dx[dir[i]];
+                int py = cy + MapValues.dy[dir[i]];
+
+                while (px >= 0 && py >= 0 && px < mapSize && py < mapSize && generatedMap[px, py] == MapFlag.None)
+                {
+                    for (int j = -buildingAreaSize; j <= buildingAreaSize; j++)
                     {
-                        for (int i = 0; i < extendedBuildingSize; i++)
+                        int nx = px + j * MapValues.dy[dir[i]];
+                        int ny = py + j * MapValues.dx[dir[i]];
+                        if (generatedMap[nx, ny] != MapFlag.None)
                         {
-                            for (int j = 0; j < extendedBuildingSize; j++)
-                            {
-                                int px = x * extendedBuildingSize + xOffset + i;
-                                int py = y * extendedBuildingSize + yOffset + j;
-
-                                generatedMap[px, py] = MapFlag.BuildingPlace;
-                            }
+                            chkPossible = false;
+                            break;
                         }
-
-                        // 건물 기준점(BuildingPoint) 표시
-                        generatedMap[x * extendedBuildingSize + xOffset, y * extendedBuildingSize + yOffset] |= MapFlag.BuildingPoint;
                     }
+
+                    if (!chkPossible) break;
+                    px += MapValues.dx[dir[i]];
+                    py += MapValues.dy[dir[i]];
+                }
+                if (!chkPossible) break;
+            }
+
+            if (!chkPossible) continue;
+
+            // Mark Narrow Road
+            for (int i = 0; i < dir.Count; i++)
+            {
+                int px = cx + MapValues.dx[dir[i]];
+                int py = cy + MapValues.dy[dir[i]];
+
+                while (px >= 0 && py >= 0 && px < mapSize && py < mapSize && generatedMap[px, py] == MapFlag.None)
+                {
+                    generatedMap[px, py] = MapFlag.NarrowRoad;
+                    px += MapValues.dx[dir[i]];
+                    py += MapValues.dy[dir[i]];
+                }
+            }
+
+            // Mark Initial point (intersection)
+            generatedMap[cx, cy] = MapFlag.NarrowRoad;
+
+            // Remove impossible points
+            Stack<int> deleteNum = new Stack<int>();
+            for (int i = 0; i < possiblePoints.Count; i++)
+            {
+                int px = possiblePoints[i] / mapSize;
+                int py = possiblePoints[i] % mapSize;
+                bool chk = true;
+
+                for (int p = -buildingAreaSize; p <= buildingAreaSize; p++)
+                {
+                    for (int q = -buildingAreaSize; q <= buildingAreaSize; q++)
+                    {
+                        int nx = px + p;
+                        int ny = py + q;
+
+                        if (nx < 0 || ny < 0 || nx >= mapSize || ny >= mapSize) continue;
+                        if (generatedMap[nx, ny] != MapFlag.None)
+                        {
+                            chk = false;
+                            break;
+                        }
+                    }
+                    if (!chk) break;
+                }
+
+                if (!chk) deleteNum.Push(possiblePoints[i]);
+            }
+
+            while (deleteNum.Count > 0) possiblePoints.Remove(deleteNum.Pop());
+        }
+    }
+
+    #endregion
+
+
+    #region Mark Buildings
+
+    // Update possilbeBuildingPoints which includes all possible Mapflag.BuildingPoint [x,y] in generatedMap
+    int UpdatePossibleBuildingPoints()
+    {
+        possilbeBuildingPoints = new List<int>();
+
+        for (int i = 0; i < mapSize; i++)
+        {
+            for (int j = 0; j < mapSize; j++)
+            {
+                if (generatedMap[i, j] > MapFlag.None) continue;
+
+                bool chk = true;
+
+                for (int p = -minBuildingGap; p < buildingSize + minBuildingGap; p++)
+                {
+                    for (int q = -minBuildingGap; q < buildingSize + minBuildingGap; q++)
+                    {
+                        int nx = i + p;
+                        int ny = j + q;
+                        if (nx < 0 || ny < 0 || nx >= mapSize || ny >= mapSize || generatedMap[nx, ny] > MapFlag.None)
+                        {
+                            chk = false;
+                            break;
+                        }
+                    }
+                    if (!chk) break;
+                }
+
+                if (chk) possilbeBuildingPoints.Add(i * mapSize + j);
+            }
+        }
+
+        return possilbeBuildingPoints.Count;
+    }
+
+    // Mark [minBuildingNum, maxBuildingNum] Mapflag.BuildingPoints in generatedMap by randomly picking points in possilbeBuildingPoints
+    void MarkBuildings()
+    {
+        int buildingCount = 0;
+        int buildingNum = pseudoRandom.Next(minBuildingNum, maxBuildingNum + 1);
+
+        while (UpdatePossibleBuildingPoints() > 0 && ++buildingCount <= buildingNum)
+        {
+            int idx = pseudoRandom.Next(0, possilbeBuildingPoints.Count);
+            int px = possilbeBuildingPoints[idx] / mapSize;
+            int py = possilbeBuildingPoints[idx] % mapSize;
+
+            generatedMap[px, py] |= MapFlag.BuildingPoint;
+
+            for (int i = 0; i < buildingSize; i++)
+            {
+                for (int j = 0; j < buildingSize; j++)
+                {
+                    generatedMap[px + i, py + j] |= MapFlag.Building;
+                }
+            }
+        }
+
+        if (possilbeBuildingPoints.Count > 0) MarkBuildingsAtBlankSpace();
+    }
+
+    // Mark additional buildings if there is blank space
+    void MarkBuildingsAtBlankSpace()
+    {
+        int[,] visited = new int[mapSize, mapSize];
+        List<int> emptyAreaNums = new List<int>();
+        int areaNumCnt = 0;
+
+        // Bfs
+        for (int i = 0; i < mapSize; i++)
+        {
+            for (int j = 0; j < mapSize; j++)
+            {
+                if (generatedMap[i, j] == MapFlag.None && visited[i, j] == 0)
+                {
+                    bool chk = true;
+                    Queue<int> q = new Queue<int>();
+                    q.Enqueue(i * mapSize + j);
+                    visited[i, j] = ++areaNumCnt;
+
+                    while (q.Count > 0)
+                    {
+                        int px = q.Dequeue();
+                        int py = px % mapSize;
+                        px /= mapSize;
+
+                        for (int k = 0; k < MapValues.dx.Count(); k++)
+                        {
+                            int nx = px + MapValues.dx[k];
+                            int ny = py + MapValues.dy[k];
+                            if (nx < 0 || ny < 0 || nx >= mapSize || ny >= mapSize || visited[nx, ny] > 0 || generatedMap[nx, ny] >= MapFlag.WideRoad) continue;
+
+                            // if generatedMap[nx,ny] is Building
+                            if (generatedMap[nx, ny] != MapFlag.None) chk = false;
+
+                            visited[nx, ny] = areaNumCnt;
+                            q.Enqueue(nx * mapSize + ny);
+                        }
+                    }
+
+                    if (chk) emptyAreaNums.Add(areaNumCnt);
+                }
+            }
+        }
+
+        // Mark one building for one emptyAreaNums values
+        for (int k = 0; k < emptyAreaNums.Count; k++)
+        {
+            List<int> possibleBuildingArea = new List<int>();
+
+            UpdatePossibleBuildingPoints();
+
+            for (int i = 0; i < possilbeBuildingPoints.Count; i++)
+            {
+                int px = possilbeBuildingPoints[i] / mapSize;
+                int py = possilbeBuildingPoints[i] % mapSize;
+                if (visited[px, py] == emptyAreaNums[k]) possibleBuildingArea.Add(possilbeBuildingPoints[i]);
+            }
+
+            if (possibleBuildingArea.Count == 0) continue;
+
+            int aidx = pseudoRandom.Next(0, possibleBuildingArea.Count);
+            int apx = possibleBuildingArea[aidx] / mapSize;
+            int apy = possibleBuildingArea[aidx] % mapSize;
+            generatedMap[apx, apy] |= MapFlag.BuildingPoint;
+
+            for (int i = 0; i < buildingSize; i++)
+            {
+                for (int j = 0; j < buildingSize; j++)
+                {
+                    generatedMap[apx + i, apy + j] |= MapFlag.Building;
                 }
             }
         }
     }
 
-    // 각 건물 중앙에서 건물 그리기 호출
+    #endregion
+
+
+    #region Draw Objects
+
+    // Draw Building at all Mapflag.BuildingPoint
     public void DrawBuildings()
     {
-        ///////////////////////////////////////////////
-        /// To be deleted
-        for (int i = 0; i < extendedMapSize; i++)
-        {
-            for (int j = 0; j < extendedMapSize; j++)
-            {
-                if ((generatedMap[i, j] & MapFlag.BuildingPlace) == MapFlag.BuildingPlace)
-                    Instantiate(buildingPlaceObject, new Vector3(i, j, 0), Quaternion.identity, buildingPlaceParent.transform);
-            }
-        }
-        //////////////////////////////////////////////////////
-
-
         if (generatedMap != null)
         {
-            // Draw Buildings
-            for (int x = 0; x < extendedMapSize; x++)
+            for (int x = 0; x < mapSize; x++)
             {
-                for (int y = 0; y < extendedMapSize; y++)
+                for (int y = 0; y < mapSize; y++)
                 {
-                    // Gap은 빼고 그려야됨
                     if ((generatedMap[x, y] & MapFlag.BuildingPoint) == MapFlag.BuildingPoint)
-                        DrawRandomBuilding(x, y);
+                        DrawRandomBuildingWithDoor(x, y);
                 }
             }
         }
     }
 
-    // 문 위치 랜덤으로 정해서 건물 그리기 & 실제 건물 표시
-    public void DrawRandomBuilding(int x, int y)
+    // To Be Changed : Door Rotation
+    // Set Random Door position & Draw Random Building
+    public void DrawRandomBuildingWithDoor(int x, int y)
     {
-        // 건물 범위 설정
-        int minX = x + minBuildingGap;
-        int maxX = x + minBuildingGap + buildingSize - 1;
-        int minY = y + minBuildingGap;
-        int maxY = y + minBuildingGap + buildingSize - 1;
+        // Building Range
+        int minX = x;
+        int maxX = x + buildingSize - 1;
+        int minY = y;
+        int maxY = y + buildingSize - 1;
 
-        // Door 위치 랜덤으로 정하기
+        // Set Random Door position
         int doorUDRL = pseudoRandom.Next(0, 4);
         int doorX = 0, doorY = 0;
         if (doorUDRL == 0)
@@ -414,19 +583,16 @@ public class MapGenerator : MonoBehaviour
             doorY = pseudoRandom.Next(minY + 1, maxY);
         }
 
-        // 건물 그리기
+        // To Be Changed : Door Rotation
+        // Draw Building
         int randomBuilding = pseudoRandom.Next(0, (int)BuildingType.BuildingCount);
-        randomBuilding = 0; // To Be Changed
         BuildingComponent bt = buildingComponents[randomBuilding];
-        GameObject g;
+        GameObject g = bt.In;
 
         for (int i = minX; i <= maxX; i++)
         {
             for (int j = minY; j <= maxY; j++)
             {
-                // Gap을 제외한 실제 건물 표시
-                generatedMap[i, j] |= MapFlag.Building;
-
                 if (i == maxX && j == maxY) g = bt.UR;
                 else if (i == minX && j == maxY) g = bt.UL;
                 else if (i == maxX && j == minY) g = bt.DR;
@@ -443,14 +609,17 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
+    // To Be Changed : Road Object
     public void DrawRoads()
     {
-        for (int i = 0; i < extendedMapSize; i++)
+        for (int i = 0; i < mapSize; i++)
         {
-            for (int j = 0; j < extendedMapSize; j++)
+            for (int j = 0; j < mapSize; j++)
             {
                 if (generatedMap[i, j] >= MapFlag.WideRoad) Instantiate(roadObject, new Vector3(i, j, 0), Quaternion.identity, roadParent.transform);
             }
         }
     }
+
+    #endregion
 }

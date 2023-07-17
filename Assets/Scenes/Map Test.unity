@@ -472,17 +472,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a87b6037aa305c640baf0692c0c31486, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  seed: 23r23r
+  seed: asdgasdgqew
   mapSize: 100
-  minBuildingGap: 1
   buildingSize: 10
-  buildingOffset: 1
-  buildingFrequency: 100
+  minBuildingNum: 10
+  maxBuildingNum: 10
+  minBuildingGap: 1
   wideRoadWidth: 5
   middleRoadWidth: 3
   narrowRoadWidth: 1
-  maxWideRoadFrequency: 1
-  maxMiddleRoadFrequency: 2
+  minWideRoadsNumPerDir: 1
+  maxWideRoadsNumPerDir: 1
+  minMiddleRoadsNumPerDir: 1
+  maxMiddleRoadsNumPerDir: 2
+  minNarrowRoadsTotalNum: 16
+  maxNarrowRoadsTotalNum: 16
   land: {fileID: 1856607448}
   buildingComponents:
   - type: 0
@@ -496,55 +500,53 @@ MonoBehaviour:
     R: {fileID: 3119156647575376615, guid: 5dc248d68f7949a42b16a587c42a1325, type: 3}
     L: {fileID: 4998342703193927982, guid: d4826ad658d31884794a23d375350725, type: 3}
     Door: {fileID: 1685044676896600657, guid: 6de56ad0aa7c7e24b8194759c33ef737, type: 3}
-  - type: 0
-    In: {fileID: 0}
-    UR: {fileID: 0}
-    UL: {fileID: 0}
-    DR: {fileID: 0}
-    DL: {fileID: 0}
-    U: {fileID: 0}
-    D: {fileID: 0}
-    R: {fileID: 0}
-    L: {fileID: 0}
-    Door: {fileID: 0}
-  - type: 0
-    In: {fileID: 0}
-    UR: {fileID: 0}
-    UL: {fileID: 0}
-    DR: {fileID: 0}
-    DL: {fileID: 0}
-    U: {fileID: 0}
-    D: {fileID: 0}
-    R: {fileID: 0}
-    L: {fileID: 0}
-    Door: {fileID: 0}
-  - type: 0
-    In: {fileID: 0}
-    UR: {fileID: 0}
-    UL: {fileID: 0}
-    DR: {fileID: 0}
-    DL: {fileID: 0}
-    U: {fileID: 0}
-    D: {fileID: 0}
-    R: {fileID: 0}
-    L: {fileID: 0}
-    Door: {fileID: 0}
-  - type: 0
-    In: {fileID: 0}
-    UR: {fileID: 0}
-    UL: {fileID: 0}
-    DR: {fileID: 0}
-    DL: {fileID: 0}
-    U: {fileID: 0}
-    D: {fileID: 0}
-    R: {fileID: 0}
-    L: {fileID: 0}
-    Door: {fileID: 0}
+  - type: 1
+    In: {fileID: 1685044676896600657, guid: 340ba7949e273fc4688ed93d4136e1e5, type: 3}
+    UR: {fileID: 5493360379007485108, guid: 8ab0240fc2399c34b8863791e144e810, type: 3}
+    UL: {fileID: 6356533170606792864, guid: 0fae9d9b009d05b4e8ca13a205ee9c3a, type: 3}
+    DR: {fileID: 1091644102221894475, guid: 1fe2ab25c6ff094409b912fee8fa6532, type: 3}
+    DL: {fileID: 7727795467116636810, guid: ddc233950cec302449911bc8570daddd, type: 3}
+    U: {fileID: 1094878505869691428, guid: 37dc327ac175e204eaead11c3b8c57e6, type: 3}
+    D: {fileID: 2897954496186147050, guid: bf7cd4cfbba24034da85fbcacfcd0872, type: 3}
+    R: {fileID: 3119156647575376615, guid: e73613aa160cc3a4b8a20af0a75b4f7e, type: 3}
+    L: {fileID: 4998342703193927982, guid: 9c6fdfdccc8f1b647829d63c1dca7d53, type: 3}
+    Door: {fileID: 7585316168275278689, guid: 542ed407c72377c40bc1af587259e46f, type: 3}
+  - type: 2
+    In: {fileID: 1685044676896600657, guid: 6de56ad0aa7c7e24b8194759c33ef737, type: 3}
+    UR: {fileID: 5493360379007485108, guid: 23f153ec8deb9364dbc873f0df31685a, type: 3}
+    UL: {fileID: 6356533170606792864, guid: cc11523052860104fac12fb89127f1ba, type: 3}
+    DR: {fileID: 1091644102221894475, guid: 5fbe1435e83eebc41873760305ae53eb, type: 3}
+    DL: {fileID: 7727795467116636810, guid: 2162bee8ac435e44ab2897f40bb9c0cc, type: 3}
+    U: {fileID: 1094878505869691428, guid: f838afb5c579c3b4996b1f869ac97137, type: 3}
+    D: {fileID: 2897954496186147050, guid: 8b921e6addeb73a43ab38303cceb3a2e, type: 3}
+    R: {fileID: 3119156647575376615, guid: 5dc248d68f7949a42b16a587c42a1325, type: 3}
+    L: {fileID: 4998342703193927982, guid: d4826ad658d31884794a23d375350725, type: 3}
+    Door: {fileID: 1685044676896600657, guid: 6de56ad0aa7c7e24b8194759c33ef737, type: 3}
+  - type: 3
+    In: {fileID: 1685044676896600657, guid: 6de56ad0aa7c7e24b8194759c33ef737, type: 3}
+    UR: {fileID: 5493360379007485108, guid: 23f153ec8deb9364dbc873f0df31685a, type: 3}
+    UL: {fileID: 6356533170606792864, guid: cc11523052860104fac12fb89127f1ba, type: 3}
+    DR: {fileID: 1091644102221894475, guid: 5fbe1435e83eebc41873760305ae53eb, type: 3}
+    DL: {fileID: 7727795467116636810, guid: 2162bee8ac435e44ab2897f40bb9c0cc, type: 3}
+    U: {fileID: 1094878505869691428, guid: f838afb5c579c3b4996b1f869ac97137, type: 3}
+    D: {fileID: 2897954496186147050, guid: 8b921e6addeb73a43ab38303cceb3a2e, type: 3}
+    R: {fileID: 3119156647575376615, guid: 5dc248d68f7949a42b16a587c42a1325, type: 3}
+    L: {fileID: 4998342703193927982, guid: d4826ad658d31884794a23d375350725, type: 3}
+    Door: {fileID: 1685044676896600657, guid: 6de56ad0aa7c7e24b8194759c33ef737, type: 3}
+  - type: 4
+    In: {fileID: 1685044676896600657, guid: 340ba7949e273fc4688ed93d4136e1e5, type: 3}
+    UR: {fileID: 5493360379007485108, guid: 8ab0240fc2399c34b8863791e144e810, type: 3}
+    UL: {fileID: 6356533170606792864, guid: 0fae9d9b009d05b4e8ca13a205ee9c3a, type: 3}
+    DR: {fileID: 1091644102221894475, guid: 1fe2ab25c6ff094409b912fee8fa6532, type: 3}
+    DL: {fileID: 7727795467116636810, guid: ddc233950cec302449911bc8570daddd, type: 3}
+    U: {fileID: 1094878505869691428, guid: 37dc327ac175e204eaead11c3b8c57e6, type: 3}
+    D: {fileID: 2897954496186147050, guid: bf7cd4cfbba24034da85fbcacfcd0872, type: 3}
+    R: {fileID: 3119156647575376615, guid: e73613aa160cc3a4b8a20af0a75b4f7e, type: 3}
+    L: {fileID: 4998342703193927982, guid: 9c6fdfdccc8f1b647829d63c1dca7d53, type: 3}
+    Door: {fileID: 7585316168275278689, guid: 542ed407c72377c40bc1af587259e46f, type: 3}
   roadObject: {fileID: 872444889650004467, guid: 2fcca58fe43bfae4e8370ab9243f42c2, type: 3}
   roadParent: {fileID: 885297923}
   buildingParent: {fileID: 2064115123}
-  buildingPlaceParent: {fileID: 1016170000}
-  buildingPlaceObject: {fileID: 872444889650004467, guid: 76f22a09e5a4c874d930679ec6013098, type: 3}
 --- !u!4 &1950486532
 Transform:
   m_ObjectHideFlags: 0
