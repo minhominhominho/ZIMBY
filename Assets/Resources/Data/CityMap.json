@@ -1,0 +1,35 @@
+{
+    "MapSize": 100,
+
+    "MinBuildingSize": 7,
+    "MaxBuildingSize": 10,
+    "MinBuildingNum": 16,
+    "MaxBuildingNum": 16,
+    "BuildingGap": 1,
+
+    "WideRoadWidth": 5,
+    "MiddleRoadWidth": 3,
+    "NarrowRoadWidth": 1,
+
+    "MinWideRoadsNumPerDir": 1,
+    "MaxWideRoadsNumPerDir": 2,
+    "MinMiddleRoadsNumPerDir": 1,
+    "MaxMiddleRoadsNumPerDir": 2,
+    "MinNarrowRoadsTotalNum": 16,
+    "MaxNarrowRoadsTotalNum": 16,
+
+    "MinEnvironmentNum": 30,
+    "MaxEnvironmentNum": 30,
+
+    "MapType": "City",
+    "BuildingTypes": [
+        "BuildingA",
+        "BuildingB"
+    ],
+    "EnvironmentTypes": [
+        "EnvironmentA",
+        "EnvironmentB",
+        "EnvironmentC",
+        "EnvironmentD"
+    ]
+}

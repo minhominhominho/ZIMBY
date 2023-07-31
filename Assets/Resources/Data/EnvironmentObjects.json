@@ -1,0 +1,62 @@
+{
+    "EnvironmentObjects": [
+        {
+            "EnvironmentType": "EnvironmentA",
+            "mapflag": [
+                "ClearLand"
+            ],
+            "dx": [
+                0
+            ],
+            "dy": [
+                0
+            ]
+        },
+        {
+            "EnvironmentType": "EnvironmentB",
+            "mapflag": [
+                "WideRoad"
+            ],
+            "dx": [
+                0,
+                1
+            ],
+            "dy": [
+                0,
+                0
+            ]
+        },
+        {
+            "EnvironmentType": "EnvironmentC",
+            "mapflag": [
+                "ClearLand"
+            ],
+            "dx": [
+                0,
+                0
+            ],
+            "dy": [
+                0,
+                1
+            ]
+        },
+        {
+            "EnvironmentType": "EnvironmentD",
+            "mapflag": [
+                "Building"
+            ],
+            "dx": [
+                0,
+                1,
+                0,
+                1
+            ],
+            "dy": [
+                0,
+                0,
+                1,
+                1
+            ]
+        }
+    ]
+}
